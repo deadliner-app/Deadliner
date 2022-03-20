@@ -1,7 +1,4 @@
-mod deadliner;
-mod design_system;
-
-use deadliner::Deadliner;
+use deadliner::{update_wallpaper, Deadliner};
 use eframe::{
     epaint::{Pos2, Vec2},
     epi::IconData,
@@ -9,7 +6,7 @@ use eframe::{
 };
 
 fn main() {
-    let app = Deadliner;
+    let app = Deadliner::new();
 
     let icon = image::open("assets/icon.png")
         .expect("Failed to open icon path")
