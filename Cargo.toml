@@ -11,3 +11,4 @@ image = "0.24.1"
 text-to-png = "0.2.0"
 dirs = "4.0.0"
 eframe = "0.17.0" # Gives us egui, epi and web+native backends
+systray = "0.4.0"
