@@ -9,3 +9,6 @@
 
   
 <p align="center"><img width="260px" src="https://github.com/YassinEldeeb/deadliner/blob/main/assets/icon.png"/></p>
+
+# What's Deadliner?
+Deadliner is a cross-platform desktop application for setting deadline for a project and keeping track of the time left by dynamically updating the wallpaper of your desktop with the time left so that you're always reminded with your deadline and how much time is left to stop procrastinating like me.
