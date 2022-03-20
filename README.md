@@ -24,5 +24,5 @@ When you ask any successful game dev about how does he stay productive even thou
 
 And the answer always points to **setting clear deadlines** as the most effective *magical* solution.
 
-> As seen in [this kind of survey video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) by Jonas Tyroller
+> As seen in [this kind of survey video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) by Jonas Tyroller.
 
