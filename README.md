@@ -16,7 +16,7 @@ Deadliner is a cross-platform desktop application for setting deadline for a pro
 ### Screenshot
 ![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/screenshot.png)
 
-# Why deadlines specifically?
+# Why deadlines can help increase your productivity?
 
 I like to take inspiration from game devs cause in my opinion they're the most motivated/inspiring developers.
 
