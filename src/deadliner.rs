@@ -1,4 +1,6 @@
-use crate::{draw_line, BACKGROUND, BLACK, GREY_WHITE, MARGIN, PADDING, WHITE, YELLOW};
+use crate::{
+    draw_line, BACKGROUND, BLACK, GREY_WHITE, INPUT_BACKGROUND, MARGIN, PADDING, WHITE, YELLOW,
+};
 use chrono::{Date, Utc};
 use eframe::{
     self,
@@ -78,8 +80,8 @@ impl<'a> App for Deadliner<'a> {
         // ctx.set_debug_on_hover(true);
         let mut style: egui::Style = (*ctx.style()).clone();
 
-        style.visuals.faint_bg_color = Color32::from_rgb(49, 58, 75);
-        style.visuals.extreme_bg_color = Color32::from_rgb(49, 58, 75);
+        style.visuals.faint_bg_color = INPUT_BACKGROUND;
+        style.visuals.extreme_bg_color = INPUT_BACKGROUND;
         style.visuals.override_text_color = Some(GREY_WHITE);
         ctx.set_style(style);
     }
