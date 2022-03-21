@@ -152,10 +152,40 @@ impl<'a> App for Deadliner<'a> {
 
             ui.add_space(PADDING);
 
-            ui.horizontal(|ui| {
-                ui.label("Pick a Color:");
-                ui.color_edit_button_rgb(&mut self.bg_color);
-            });
+            match self.background {
+                BackgroundOptions::Solid => {
+                    ui.horizontal(|ui| {
+                        ui.label("Pick a Color:");
+                        ui.color_edit_button_rgb(&mut self.bg_color);
+                    });
+                }
+                BackgroundOptions::FromURL => {
+                    ui.horizontal(|ui| {
+                        ui.label("Image URL:");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.date)
+                                .desired_width(180.)
+                                .hint_text(
+                                    RichText::new("https://source.unsplash.com/random")
+                                        .color(Color32::from_white_alpha(45)),
+                                ),
+                        );
+                    });
+                }
+                BackgroundOptions::FromDisk => {
+                    ui.horizontal(|ui| {
+                        ui.label("Image Location:");
+                        ui.add(
+                            egui::TextEdit::singleline(&mut self.date)
+                                .desired_width(180.)
+                                .hint_text(
+                                    RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
+                                        .color(Color32::from_white_alpha(45)),
+                                ),
+                        );
+                    });
+                }
+            }
 
             ui.add_space(PADDING);
 
