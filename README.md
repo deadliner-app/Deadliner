@@ -5,10 +5,8 @@
 <img src="https://img.shields.io/badge/license-MIT-blue"/>
 </div>
 </h1>
-
-
   
-<p align="center"><img width="260px" src="https://github.com/YassinEldeeb/deadliner/blob/main/assets/icon.png"/></p>
+<p align="center"><img width="260px" src="https://github.com/YassinEldeeb/deadliner/blob/a57be0a27e3de2034f6a61a100db6168b2fab147/assets/icon.png"/></p>
 
 # What's Deadliner?
 Deadliner is a cross-platform desktop application for setting deadline for a project and keeping track of the time left by dynamically updating the wallpaper of your desktop with the time left so that you're always reminded with your deadline and how much time is left and hopefully can help you stop procrastinating like me.
