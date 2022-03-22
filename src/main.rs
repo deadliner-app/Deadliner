@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use deadliner::{update_wallpaper, Deadliner};
 use eframe::{
     epaint::{Pos2, Vec2},
@@ -26,6 +28,4 @@ fn main() {
     };
 
     run_native(Box::new(app), win_options);
-
-    // update_wallpaper("3 Days, 14 Hours Left.");
 }

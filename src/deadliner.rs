@@ -1,8 +1,10 @@
 use crate::{
-    draw_line, is_string_numeric, BACKGROUND, BLACK, GREY_WHITE, INPUT_BACKGROUND, MARGIN, PADDING,
-    WHITE, YELLOW,
+    draw_line, is_string_numeric, update_wallpaper, BACKGROUND, BLACK, GREY_WHITE,
+    INPUT_BACKGROUND, MARGIN, PADDING, WHITE, YELLOW,
 };
-use chrono::{Date, DateTime, Local, NaiveDateTime, ParseError, Utc};
+use chrono::{
+    Date, DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, ParseError, TimeZone, Utc,
+};
 use eframe::{
     self,
     egui::{
@@ -15,20 +17,23 @@ use eframe::{
 use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
+    str::FromStr,
+    thread,
     time::Instant,
 };
 
 struct DeadlinerConf {
     background: BackgroundOptions,
 
-    // bg options
-    bg_color: [f32; 3],
+    bg_color: [u8; 3],
     bg_url: String,
     bg_location: String,
 
     update_every: UpdateEvery,
 
     font: Font,
+    font_size: u8,
+    font_color: [u8; 3],
 
     date: String,
 
@@ -84,13 +89,15 @@ pub struct SanitizedConf {
 
     update_every: UpdateEvery,
     font: Font,
+    font_size: u8,
+    font_color: String,
 
     deadline: NaiveDateTime,
 }
 
-fn sanitize_inputs(conf: &DeadlinerConf) -> Result<SanitizedConf, String> {
+fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
-        return Err(String::from("Not enough Inputs"));
+        return Err(String::from("Not enough Date Inputs"));
     }
 
     let mut sanitized_conf = SanitizedConf {
@@ -99,12 +106,28 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<SanitizedConf, String> {
         bg_location: None,
         update_every: conf.update_every,
         font: conf.font,
+        font_size: conf.font_size,
+
+        // Just a placeholder till we convert RGB to HEX
+        font_color: String::new(),
+
+        // Just a placeholder till we parse the date
         deadline: NaiveDateTime::from_timestamp(0, 0),
     };
 
-    // Change RGB to HEX
+    let rgb_to_hex = |r, g, b| format!("#{:02X}{:02X}{:02X}", r, g, b);
+    let [r, g, b] = conf.bg_color;
+
+    // font-color RGB to HEX
+    {
+        let [r, g, b] = conf.font_color;
+
+        sanitized_conf.font_color = rgb_to_hex(r, g, b);
+    }
+
+    // bg-color RGB to HEX
     match conf.background {
-        BackgroundOptions::Solid => sanitized_conf.bg_color = Some("#000000".to_string()),
+        BackgroundOptions::Solid => sanitized_conf.bg_color = Some(rgb_to_hex(r, g, b)),
         BackgroundOptions::FromDisk => {
             sanitized_conf.bg_location = Some(conf.bg_location.trim().to_string())
         }
@@ -112,24 +135,45 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<SanitizedConf, String> {
     }
 
     let formatted_date_str = format!(
-        "{} {}:{}",
+        "{} {}:{} {:?}",
         conf.date.trim(),
-        if conf.period == Periods::PM {
-            (conf.hours.trim().parse::<u8>().unwrap() + 12).to_string()
-        } else {
-            conf.hours.trim().to_string()
-        },
+        conf.hours.trim().to_string(),
         conf.minutes.trim(),
+        conf.period
     );
 
-    let date = NaiveDateTime::parse_from_str(&formatted_date_str, "%Y-%m-%d %H:%M");
+    let date = NaiveDateTime::parse_from_str(&formatted_date_str, "%Y-%m-%d %I:%M %p");
 
     match date {
         Ok(result) => sanitized_conf.deadline = result,
         Err(_) => return Err(String::from("Invalid date input!")),
     }
 
-    Ok(sanitized_conf)
+    let today = Local::now().naive_local();
+    let deadline = date.unwrap();
+    let diff = deadline.signed_duration_since(today);
+
+    let days = diff.num_days();
+    let hours = diff.num_hours();
+
+    // TODO: approximate values
+    // Ex: 1 hour and 31 minutes
+    // Should be "2 hours remaining"
+    // And not "1 hours remaining"
+
+    let remaining_days = days;
+    let remaining_hours = hours - remaining_days * 24;
+
+    thread::spawn(move || {
+        // Here we setup a schedule every "period" to update the wallpaper
+        update_wallpaper(
+            &format!("{} Days, {} Hours Left.", remaining_days, remaining_hours),
+            sanitized_conf.font_size,
+            sanitized_conf.font_color,
+        );
+    });
+
+    Ok(())
 }
 
 impl<'a> App for Deadliner<'a> {
@@ -221,7 +265,7 @@ impl<'a> App for Deadliner<'a> {
                 BackgroundOptions::Solid => {
                     ui.horizontal(|ui| {
                         ui.label("Pick a Color:");
-                        ui.color_edit_button_rgb(&mut self.conf.bg_color);
+                        ui.color_edit_button_srgb(&mut self.conf.bg_color);
                     });
                 }
                 BackgroundOptions::FromURL => {
@@ -302,6 +346,20 @@ impl<'a> App for Deadliner<'a> {
 
             ui.add_space(PADDING);
 
+            ui.horizontal(|ui| {
+                ui.label("Font Size:");
+                ui.add(egui::Slider::new(&mut self.conf.font_size, 0..=250));
+            });
+
+            ui.add_space(PADDING);
+
+            ui.horizontal(|ui| {
+                ui.label("Font Color:");
+                ui.color_edit_button_srgb(&mut self.conf.font_color);
+            });
+
+            ui.add_space(PADDING);
+
             ui.heading("Pick your Deadline");
 
             ui.add_space(PADDING);
@@ -309,13 +367,7 @@ impl<'a> App for Deadliner<'a> {
             let date_error_popup_id = ui.make_persistent_id("invalid-date-error");
 
             ui.horizontal_wrapped(|ui| {
-                let date = ui.label("Date:");
-
-                // Setup error popup
-                egui::popup::popup_below_widget(ui, date_error_popup_id, &date, |ui| {
-                    ui.set_min_width(200.0); // if you want to control the size
-                    ui.label(&self.error_msg);
-                });
+                ui.label("Date:");
 
                 ui.add(
                     egui::TextEdit::singleline(&mut self.conf.date)
@@ -372,15 +424,19 @@ impl<'a> App for Deadliner<'a> {
                     .color(BLACK),
             );
 
+            // Setup error popup
+            egui::popup::popup_below_widget(ui, date_error_popup_id, &button, |ui| {
+                ui.set_min_width(200.0); // if you want to control the size
+                ui.label(&self.error_msg);
+            });
+
             if button.clicked() {
                 match sanitize_inputs(&self.conf) {
-                    Ok(data) => {
-                        println!("{:#?}", data);
-                    }
                     Err(msg) => {
                         self.error_msg = msg;
                         ui.memory().toggle_popup(date_error_popup_id);
                     }
+                    _ => (),
                 }
             };
         });
@@ -402,7 +458,7 @@ impl<'a> Deadliner<'a> {
             error_msg: String::new(),
             conf: DeadlinerConf {
                 background: BackgroundOptions::Solid,
-                bg_color: [0., 0., 0.],
+                bg_color: [0, 0, 0],
                 bg_location: String::new(),
                 bg_url: String::new(),
                 update_every: UpdateEvery::Hour,
@@ -411,6 +467,8 @@ impl<'a> Deadliner<'a> {
                 hours: String::new(),
                 minutes: String::new(),
                 period: Periods::AM,
+                font_size: 100,
+                font_color: [255, 255, 255],
             },
         }
     }
@@ -470,6 +528,14 @@ impl<'a> Deadliner<'a> {
 
         text_styles.insert(
             TextStyle::Button,
+            FontId {
+                family: FontFamily::Name("Poppins-400".into()),
+                size: 18.,
+            },
+        );
+
+        text_styles.insert(
+            TextStyle::Monospace,
             FontId {
                 family: FontFamily::Name("Poppins-400".into()),
                 size: 18.,
