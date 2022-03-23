@@ -14,11 +14,8 @@ Deadliner is a cross-platform desktop application for setting deadline for a pro
 ### Desktop Screenshot
 ![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/screenshot.png)
 
-### App on Windows Screenshot
+### App Screenshot
 ![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/app-win.png)
-
-### App on Mac Screenshot
-![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/app-mac.png)
 
 # Why deadlines can help increase your productivity?
 
