@@ -1,47 +1,42 @@
 use crate::{
-    draw_line, is_string_numeric, update_wallpaper, BACKGROUND, BLACK, GREY_WHITE,
-    INPUT_BACKGROUND, MARGIN, PADDING, WHITE, YELLOW,
+    button, draw_line, header, input, input_with_label, is_string_numeric, sanitize_inputs,
+    section, BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK,
 };
-use chrono::{
-    Date, DateTime, FixedOffset, Local, NaiveDate, NaiveDateTime, ParseError, TimeZone, Utc,
-};
+use chrono::NaiveDateTime;
 use eframe::{
     self,
     egui::{
-        self, style::Margin, text, CentralPanel, ComboBox, Context, FontData, FontDefinitions,
-        Frame, Id, RichText, TextStyle,
+        self,
+        style::{Margin, Selection, WidgetVisuals},
+        CentralPanel, ComboBox, Context, FontData, FontDefinitions, Frame, RichText, TextStyle,
     },
-    epaint::{Color32, FontFamily, FontId, TextureHandle},
+    epaint::{Color32, FontFamily, FontId, Rounding, Stroke, TextureHandle},
     epi::App,
 };
 use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
-    str::FromStr,
-    thread,
-    time::Instant,
+    fs,
 };
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+pub struct DeadlinerConf {
+    pub background: BackgroundOptions,
 
-struct DeadlinerConf {
-    background: BackgroundOptions,
+    pub bg_color: [u8; 3],
+    pub bg_url: String,
+    pub bg_location: String,
 
-    bg_color: [u8; 3],
-    bg_url: String,
-    bg_location: String,
+    pub update_every: UpdateEvery,
 
-    update_every: UpdateEvery,
+    pub font: Font,
+    pub font_size: u8,
+    pub font_color: [u8; 3],
 
-    font: Font,
-    font_size: u8,
-    font_color: [u8; 3],
-
-    date: String,
-
-    hours: String,
-
-    minutes: String,
-
-    period: Periods,
+    pub date: String,
+    pub hours: String,
+    pub minutes: String,
+    pub period: Periods,
 }
 
 pub struct Deadliner<'a> {
@@ -53,29 +48,29 @@ pub struct Deadliner<'a> {
     conf: DeadlinerConf,
 }
 
-#[derive(Debug, PartialEq)]
-enum Periods {
+#[derive(Debug, PartialEq, Copy, Clone, EnumIter)]
+pub enum Periods {
     AM,
     PM,
 }
 
-#[derive(Debug, PartialEq)]
-enum BackgroundOptions {
+#[derive(Debug, PartialEq, Copy, Clone, EnumIter)]
+pub enum BackgroundOptions {
     Solid,
     FromDisk,
     FromURL,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy)]
-enum Font {
+#[derive(PartialEq, Debug, Clone, Copy, EnumIter)]
+pub enum Font {
     PoppinsBlack,
     PoppinsMedium,
     PoppinsRegular,
     PoppinsLight,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum UpdateEvery {
+#[derive(Debug, PartialEq, Clone, Copy, EnumIter)]
+pub enum UpdateEvery {
     Day,
     Hour,
     Minute,
@@ -83,97 +78,16 @@ enum UpdateEvery {
 
 #[derive(Debug)]
 pub struct SanitizedConf {
-    bg_color: Option<String>,
-    bg_url: Option<String>,
-    bg_location: Option<String>,
+    pub bg_color: Option<String>,
+    pub bg_url: Option<String>,
+    pub bg_location: Option<String>,
 
-    update_every: UpdateEvery,
-    font: Font,
-    font_size: u8,
-    font_color: String,
+    pub update_every: UpdateEvery,
+    pub font: Font,
+    pub font_size: u8,
+    pub font_color: String,
 
-    deadline: NaiveDateTime,
-}
-
-fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
-    if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
-        return Err(String::from("Not enough Date Inputs"));
-    }
-
-    let mut sanitized_conf = SanitizedConf {
-        bg_color: None,
-        bg_url: None,
-        bg_location: None,
-        update_every: conf.update_every,
-        font: conf.font,
-        font_size: conf.font_size,
-
-        // Just a placeholder till we convert RGB to HEX
-        font_color: String::new(),
-
-        // Just a placeholder till we parse the date
-        deadline: NaiveDateTime::from_timestamp(0, 0),
-    };
-
-    let rgb_to_hex = |r, g, b| format!("#{:02X}{:02X}{:02X}", r, g, b);
-    let [r, g, b] = conf.bg_color;
-
-    // font-color RGB to HEX
-    {
-        let [r, g, b] = conf.font_color;
-
-        sanitized_conf.font_color = rgb_to_hex(r, g, b);
-    }
-
-    // bg-color RGB to HEX
-    match conf.background {
-        BackgroundOptions::Solid => sanitized_conf.bg_color = Some(rgb_to_hex(r, g, b)),
-        BackgroundOptions::FromDisk => {
-            sanitized_conf.bg_location = Some(conf.bg_location.trim().to_string())
-        }
-        BackgroundOptions::FromURL => sanitized_conf.bg_url = Some(conf.bg_url.trim().to_string()),
-    }
-
-    let formatted_date_str = format!(
-        "{} {}:{} {:?}",
-        conf.date.trim(),
-        conf.hours.trim().to_string(),
-        conf.minutes.trim(),
-        conf.period
-    );
-
-    let date = NaiveDateTime::parse_from_str(&formatted_date_str, "%Y-%m-%d %I:%M %p");
-
-    match date {
-        Ok(result) => sanitized_conf.deadline = result,
-        Err(_) => return Err(String::from("Invalid date input!")),
-    }
-
-    let today = Local::now().naive_local();
-    let deadline = date.unwrap();
-    let diff = deadline.signed_duration_since(today);
-
-    let days = diff.num_days();
-    let hours = diff.num_hours();
-
-    // TODO: approximate values
-    // Ex: 1 hour and 31 minutes
-    // Should be "2 hours remaining"
-    // And not "1 hours remaining"
-
-    let remaining_days = days;
-    let remaining_hours = hours - remaining_days * 24;
-
-    thread::spawn(move || {
-        // Here we setup a schedule every "period" to update the wallpaper
-        update_wallpaper(
-            &format!("{} Days, {} Hours Left.", remaining_days, remaining_hours),
-            sanitized_conf.font_size,
-            sanitized_conf.font_color,
-        );
-    });
-
-    Ok(())
+    pub deadline: NaiveDateTime,
 }
 
 impl<'a> App for Deadliner<'a> {
@@ -187,10 +101,56 @@ impl<'a> App for Deadliner<'a> {
         self.set_custom_fonts(ctx);
 
         // ctx.set_debug_on_hover(true);
-        let mut style: egui::Style = (*ctx.style()).clone();
+        let mut style = (*ctx.style()).clone();
 
-        style.visuals.faint_bg_color = INPUT_BACKGROUND;
-        style.visuals.extreme_bg_color = INPUT_BACKGROUND;
+        let base = WidgetVisuals {
+            bg_fill: SECONDARY,
+            bg_stroke: Stroke {
+                color: GREY_WHITE,
+                width: 0.,
+            },
+            rounding: Rounding {
+                sw: 5.,
+                ne: 5.,
+                nw: 5.,
+                se: 5.,
+            },
+            expansion: 1.,
+            fg_stroke: Stroke {
+                color: GREY_WHITE,
+                width: 1.,
+            },
+        };
+
+        style.visuals.widgets.inactive = base;
+        style.visuals.widgets.active = base;
+
+        style.visuals.widgets.open = WidgetVisuals {
+            bg_stroke: Stroke {
+                color: GREY_WHITE,
+                width: 1.,
+            },
+            ..base
+        };
+        style.visuals.widgets.noninteractive = WidgetVisuals {
+            bg_fill: SECONDARY_BRIGHT,
+            ..base
+        };
+
+        style.visuals.widgets.hovered = WidgetVisuals {
+            bg_fill: SECONDARY_DARK,
+            ..base
+        };
+
+        style.visuals.selection = Selection {
+            bg_fill: SECONDARY_DARK,
+            stroke: Stroke {
+                color: GREY_WHITE,
+                width: 1.,
+            },
+        };
+
+        style.visuals.extreme_bg_color = SECONDARY;
         style.visuals.override_text_color = Some(GREY_WHITE);
         ctx.set_style(style);
     }
@@ -216,238 +176,177 @@ impl<'a> App for Deadliner<'a> {
         );
 
         central_panel.show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.image(logo, [50., 50.]);
-                ui.label(
-                    RichText::new("Deadliner")
-                        .font(FontId {
-                            family: FontFamily::Name("Poppins-600".into()),
-                            size: 47.,
-                        })
-                        .color(WHITE)
-                        .heading(),
-                );
-            });
-
+            header(ui, logo);
             draw_line(ui, 2.);
 
-            ui.heading("Styling");
+            section(ui, "Styling", |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Background:");
 
-            ui.add_space(PADDING);
+                    ComboBox::from_id_source("background_options")
+                        .selected_text(format!("{:?}", self.conf.background))
+                        .show_ui(ui, |ui| {
+                            for option in BackgroundOptions::iter().collect::<Vec<_>>() {
+                                ui.selectable_value(
+                                    &mut self.conf.background,
+                                    option,
+                                    format!("{:?}", option),
+                                );
+                            }
+                        });
+                });
 
-            ui.horizontal(|ui| {
-                ui.label("Background:");
+                ui.add_space(PADDING);
 
-                ComboBox::from_id_source("background_options")
-                    .selected_text(format!("{:?}", self.conf.background))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(
-                            &mut self.conf.background,
-                            BackgroundOptions::Solid,
-                            "Solid Color",
-                        );
-                        ui.selectable_value(
-                            &mut self.conf.background,
-                            BackgroundOptions::FromDisk,
-                            "From Disk",
-                        );
-                        ui.selectable_value(
-                            &mut self.conf.background,
-                            BackgroundOptions::FromURL,
-                            "From URL",
-                        );
-                    });
-            });
-
-            ui.add_space(PADDING);
-
-            match self.conf.background {
-                BackgroundOptions::Solid => {
-                    ui.horizontal(|ui| {
-                        ui.label("Pick a Color:");
-                        ui.color_edit_button_srgb(&mut self.conf.bg_color);
-                    });
-                }
-                BackgroundOptions::FromURL => {
-                    ui.horizontal(|ui| {
-                        ui.label("Image URL:");
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.conf.bg_url)
-                                .desired_width(180.)
-                                .hint_text(
-                                    RichText::new("https://source.unsplash.com/random")
-                                        .color(Color32::from_white_alpha(45)),
-                                ),
-                        );
-                    });
-                }
-                BackgroundOptions::FromDisk => {
-                    ui.horizontal(|ui| {
-                        ui.label("Image Location:");
-                        ui.add(
-                            egui::TextEdit::singleline(&mut self.conf.bg_location)
-                                .desired_width(180.)
-                                .hint_text(
-                                    RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
-                                        .color(Color32::from_white_alpha(45)),
-                                ),
-                        );
-                    });
-                }
-            }
-
-            ui.add_space(PADDING);
-
-            ui.horizontal(|ui| {
-                ui.label("Update every:");
-                ComboBox::from_id_source("update_every")
-                    .selected_text(format!("{:?}", self.conf.update_every))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut self.conf.update_every, UpdateEvery::Day, "Day");
-                        ui.selectable_value(&mut self.conf.update_every, UpdateEvery::Hour, "Hour");
-                        ui.selectable_value(
-                            &mut self.conf.update_every,
-                            UpdateEvery::Minute,
-                            "Minute",
-                        );
-                    });
-            });
-
-            ui.add_space(PADDING);
-
-            ui.horizontal(|ui| {
-                ui.label("Font:");
-
-                ComboBox::from_id_source("font_family")
-                    .selected_text(format!("{:?}", self.conf.font))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(
-                            &mut self.conf.font,
-                            Font::PoppinsBlack,
-                            "Poppins Black",
-                        );
-                        ui.selectable_value(
-                            &mut self.conf.font,
-                            Font::PoppinsMedium,
-                            "Poppins Medium",
-                        );
-                        ui.selectable_value(
-                            &mut self.conf.font,
-                            Font::PoppinsRegular,
-                            "Poppins Regular",
-                        );
-                        ui.selectable_value(
-                            &mut self.conf.font,
-                            Font::PoppinsLight,
-                            "Poppins Light",
-                        );
-                    });
-            });
-
-            ui.add_space(PADDING);
-
-            ui.horizontal(|ui| {
-                ui.label("Font Size:");
-                ui.add(egui::Slider::new(&mut self.conf.font_size, 0..=250));
-            });
-
-            ui.add_space(PADDING);
-
-            ui.horizontal(|ui| {
-                ui.label("Font Color:");
-                ui.color_edit_button_srgb(&mut self.conf.font_color);
-            });
-
-            ui.add_space(PADDING);
-
-            ui.heading("Pick your Deadline");
-
-            ui.add_space(PADDING);
-
-            let date_error_popup_id = ui.make_persistent_id("invalid-date-error");
-
-            ui.horizontal_wrapped(|ui| {
-                ui.label("Date:");
-
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.conf.date)
-                        .desired_width(95.)
-                        .hint_text(
-                            RichText::new("2022-08-26").color(Color32::from_white_alpha(45)),
-                        ),
-                );
-            });
-
-            ui.add_space(PADDING);
-
-            ui.horizontal_wrapped(|ui| {
-                ui.label("Time:");
-
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.conf.hours)
-                        .desired_width(18.)
-                        .hint_text(RichText::new("7").color(Color32::from_white_alpha(45))),
-                );
-
-                ui.label(":");
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.conf.minutes)
-                        .desired_width(18.)
-                        .hint_text(RichText::new("28").color(Color32::from_white_alpha(45))),
-                );
-
-                // Check if inputs are numeric
-                if !is_string_numeric(&self.conf.hours) {
-                    self.conf.hours = String::new();
-                }
-                if !is_string_numeric(&self.conf.minutes) {
-                    self.conf.minutes = String::new();
-                }
-
-                ComboBox::from_id_source("time_period")
-                    .selected_text(format!("{:?}", self.conf.period))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut self.conf.period, Periods::AM, "AM");
-                        ui.selectable_value(&mut self.conf.period, Periods::PM, "PM");
-                    });
-            });
-
-            ui.add_space(20.);
-
-            let button = ui.button(
-                RichText::new("Start!")
-                    .font(FontId {
-                        family: FontFamily::Name("Poppins-600".into()),
-                        size: 35.,
-                    })
-                    .background_color(YELLOW)
-                    .color(BLACK),
-            );
-
-            // Setup error popup
-            egui::popup::popup_below_widget(ui, date_error_popup_id, &button, |ui| {
-                ui.set_min_width(200.0); // if you want to control the size
-                ui.label(&self.error_msg);
-            });
-
-            if button.clicked() {
-                match sanitize_inputs(&self.conf) {
-                    Err(msg) => {
-                        self.error_msg = msg;
-                        ui.memory().toggle_popup(date_error_popup_id);
+                match self.conf.background {
+                    BackgroundOptions::Solid => {
+                        ui.horizontal(|ui| {
+                            ui.label("Pick a Color:");
+                            ui.color_edit_button_srgb(&mut self.conf.bg_color);
+                        });
                     }
-                    _ => (),
+                    BackgroundOptions::FromURL => {
+                        ui.horizontal(|ui| {
+                            ui.label("Image URL:");
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.conf.bg_url)
+                                    .desired_width(180.)
+                                    .hint_text(
+                                        RichText::new("https://source.unsplash.com/random")
+                                            .color(Color32::from_white_alpha(45)),
+                                    ),
+                            );
+                        });
+                    }
+                    BackgroundOptions::FromDisk => {
+                        ui.horizontal(|ui| {
+                            ui.label("Image Location:");
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.conf.bg_location)
+                                    .desired_width(180.)
+                                    .hint_text(
+                                        RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
+                                            .color(Color32::from_white_alpha(45)),
+                                    ),
+                            );
+                        });
+                    }
                 }
-            };
+
+                ui.add_space(PADDING);
+
+                ui.horizontal(|ui| {
+                    ui.label("Update every:");
+
+                    ComboBox::from_id_source("update_every")
+                        .selected_text(format!("{:?}", self.conf.update_every))
+                        .show_ui(ui, |ui| {
+                            for option in UpdateEvery::iter().collect::<Vec<_>>() {
+                                ui.selectable_value(
+                                    &mut self.conf.update_every,
+                                    option,
+                                    format!("{:?}", option),
+                                );
+                            }
+                        });
+                });
+
+                ui.add_space(PADDING);
+
+                ui.horizontal(|ui| {
+                    ui.label("Font:");
+
+                    ComboBox::from_id_source("font_family")
+                        .width(125.)
+                        .selected_text(format!("{:?}", self.conf.font))
+                        .show_ui(ui, |ui| {
+                            for option in Font::iter().collect::<Vec<_>>() {
+                                ui.selectable_value(
+                                    &mut self.conf.font,
+                                    option,
+                                    format!("{:?}", option),
+                                );
+                            }
+                        });
+                });
+
+                ui.add_space(PADDING);
+
+                ui.horizontal(|ui| {
+                    ui.label("Font Size:");
+                    ui.add(egui::Slider::new(&mut self.conf.font_size, 0..=200));
+                });
+
+                ui.add_space(PADDING);
+
+                ui.horizontal(|ui| {
+                    ui.label("Font Color:");
+                    ui.color_edit_button_srgb(&mut self.conf.font_color);
+                });
+            });
+
+            section(ui, "Pick your Deadline", |ui| {
+                let date_error_popup_id = ui.make_persistent_id("invalid-date-error");
+
+                input_with_label(ui, "Date:", &mut self.conf.date, "2022-08-26");
+
+                ui.add_space(PADDING);
+
+                ui.horizontal(|ui| {
+                    ui.label("Time:");
+
+                    input(ui, &mut self.conf.hours, "7", 18.);
+                    ui.label(":");
+                    input(ui, &mut self.conf.minutes, "28", 18.);
+
+                    // Check if inputs are numeric
+                    if !is_string_numeric(&self.conf.hours) {
+                        self.conf.hours = String::new();
+                    }
+                    if !is_string_numeric(&self.conf.minutes) {
+                        self.conf.minutes = String::new();
+                    }
+
+                    ComboBox::from_id_source("time_period")
+                        .width(70.)
+                        .selected_text(format!("{:?}", self.conf.period))
+                        .show_ui(ui, |ui| {
+                            for option in Periods::iter().collect::<Vec<_>>() {
+                                ui.selectable_value(
+                                    &mut self.conf.period,
+                                    option,
+                                    format!("{:?}", option),
+                                );
+                            }
+                        });
+                });
+
+                ui.add_space(20.);
+
+                let button = button("Start!");
+                let button = ui.add(button);
+
+                // Setup error popup
+                egui::popup::popup_below_widget(ui, date_error_popup_id, &button, |ui| {
+                    ui.set_min_width(200.0); // if you want to control the size
+                    ui.label(&self.error_msg);
+                });
+
+                if button.clicked() {
+                    match sanitize_inputs(&self.conf) {
+                        Err(msg) => {
+                            self.error_msg = msg;
+                            ui.memory().toggle_popup(date_error_popup_id);
+                        }
+                        _ => (),
+                    }
+                };
+            });
         });
     }
 
     fn name(&self) -> &str {
         "Deadliner"
-    }
-
-    fn on_exit(&mut self) {
-        println!("I'm dying..");
     }
 }
 
@@ -475,21 +374,21 @@ impl<'a> Deadliner<'a> {
 
     fn set_custom_fonts(&mut self, ctx: &Context) {
         let mut fonts = FontDefinitions::default();
-        let fonts_data: Vec<(&str, u16, &[u8])> = vec![
+        let fonts_data: Vec<(&str, u16, Vec<u8>)> = vec![
             (
                 "Poppins-Regular",
                 400,
-                include_bytes!("../assets/fonts/Poppins-Light.ttf"),
+                fs::read("./assets/fonts/PoppinsLight.ttf").unwrap(),
             ),
             (
                 "Poppins-Medium",
                 500,
-                include_bytes!("../assets/fonts/Poppins-Regular.ttf"),
+                fs::read("./assets/fonts/PoppinsRegular.ttf").unwrap(),
             ),
             (
                 "Poppins-SemiBold",
                 600,
-                include_bytes!("../assets/fonts/Poppins-Medium.ttf"),
+                fs::read("./assets/fonts/PoppinsMedium.ttf").unwrap(),
             ),
         ];
 
@@ -497,7 +396,7 @@ impl<'a> Deadliner<'a> {
         for (name, font_weight, buffer) in fonts_data {
             fonts
                 .font_data
-                .insert(name.to_owned(), FontData::from_static(buffer));
+                .insert(name.to_owned(), FontData::from_owned(buffer));
 
             fonts.families.insert(
                 FontFamily::Name(format!("Poppins-{}", font_weight).into()),

@@ -13,4 +13,5 @@ dirs = "4.0.0"
 eframe = "0.17.0" # Gives us egui, epi and web+native backends
 systray = "0.4.0"
 chrono = "0.4.19"
-palette = "0.6.0"
+strum = "0.17.1"
+strum_macros = "0.17.1"

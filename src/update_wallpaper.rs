@@ -1,7 +1,29 @@
+use std::fs;
+
+use chrono::Local;
 use text_to_png::TextRenderer;
 
-pub fn update_wallpaper(deadline: &str, font_size: u8, font_color: String) {
-    let file_path = generate_wallpaper(deadline, font_size, font_color);
+use crate::SanitizedConf;
+
+pub fn update_wallpaper(conf: SanitizedConf) {
+    let today = Local::now().naive_local();
+    let deadline = conf.deadline;
+    let diff = deadline.signed_duration_since(today);
+
+    let days = diff.num_days();
+    let hours = diff.num_hours();
+
+    // TODO: approximate values
+    // Ex: 1 hour and 31 minutes
+    // Should be "2 hours remaining"
+    // And not "1 hours remaining"
+
+    let remaining_days = days;
+    let remaining_hours = hours - remaining_days * 24;
+
+    let deadline_str = format!("{} Days, {} Hours Left.", remaining_days, remaining_hours);
+
+    let file_path = generate_wallpaper(&deadline_str, conf);
 
     // Sets the wallpaper for the current desktop from a URL.
     wallpaper::set_mode(wallpaper::Mode::Center).unwrap();
@@ -10,19 +32,18 @@ pub fn update_wallpaper(deadline: &str, font_size: u8, font_color: String) {
     println!("{:?}", wallpaper::get());
 }
 
-fn generate_wallpaper(deadline: &str, font_size: u8, font_color: String) -> String {
-    let renderer = TextRenderer::try_new_with_ttf_font_data(include_bytes!(
-        "../assets/fonts/Poppins-Black.ttf"
-    ))
-    .unwrap();
+fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> String {
+    let font_date_bytes = fs::read(&format!("./assets/fonts/{:?}.ttf", conf.font)).unwrap();
+
+    let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
 
     let text_png = renderer
-        .render_text_to_png_data(deadline, font_size, font_color.as_str())
+        .render_text_to_png_data(deadline_str, conf.font_size, conf.font_color.as_str())
         .unwrap();
 
     let text_image = image::load_from_memory(&text_png.data).unwrap();
 
-    let mut background = image::open("background.png").unwrap();
+    let mut background = image::open("./assets/background.png").unwrap();
 
     // 50% Background Image width or height - 50% Text Image width or height
     // To Center the text both horizontally and vertically

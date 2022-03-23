@@ -1,7 +1,9 @@
 use eframe::{
     egui::{Sense, Ui},
-    epaint::{pos2, Color32, Rect, Vec2},
+    epaint::{pos2, Rect, Vec2},
 };
+
+use crate::SECONDARY_DARK;
 
 pub fn draw_line(ui: &mut Ui, height: f32) {
     let available_space = ui.available_size_before_wrap();
@@ -21,7 +23,7 @@ pub fn draw_line(ui: &mut Ui, height: f32) {
                 max: points[1],
             },
             0.0,
-            Color32::from_white_alpha(8),
+            SECONDARY_DARK,
         );
     }
 }

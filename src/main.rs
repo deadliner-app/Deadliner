@@ -1,4 +1,4 @@
-use std::time::Instant;
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use deadliner::{update_wallpaper, Deadliner};
 use eframe::{
@@ -24,6 +24,7 @@ fn main() {
             height: icon_height,
             rgba: icon.into_raw(),
         }),
+        transparent: true,
         ..Default::default()
     };
 
