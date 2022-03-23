@@ -12,10 +12,13 @@
 Deadliner is a cross-platform desktop application for setting deadline for a project and keeping track of the time left by dynamically updating the wallpaper of your desktop with the time left so that you're always reminded with your deadline and how much time is left and hopefully can help you stop procrastinating like me.
 
 ### Desktop Screenshot
-![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/screenshot.png)
+![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/screenshot.png)
 
-### App Screenshot
-![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/app.png)
+### App on Windows Screenshot
+![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/app-win.png)
+
+### App on Mac Screenshot
+![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/app-mac.png)
 
 # Why deadlines can help increase your productivity?
 
