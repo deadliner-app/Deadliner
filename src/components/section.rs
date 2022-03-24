@@ -2,7 +2,7 @@ use eframe::egui::Ui;
 
 use crate::PADDING;
 
-pub fn section<T>(ui: &mut Ui, header_txt: &str, add_contents: T)
+pub fn render_section<T>(ui: &mut Ui, header_txt: &str, add_contents: T)
 where
     T: FnOnce(&mut Ui) -> (),
 {

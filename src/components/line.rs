@@ -5,7 +5,7 @@ use eframe::{
 
 use crate::SECONDARY_DARK;
 
-pub fn draw_line(ui: &mut Ui, height: f32) {
+pub fn render_draw_line(ui: &mut Ui, height: f32) {
     let available_space = ui.available_size_before_wrap();
     let size = Vec2::new(available_space.x, 25.);
 

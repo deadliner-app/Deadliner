@@ -5,7 +5,7 @@ use eframe::{
 
 use crate::WHITE;
 
-pub fn header(ui: &mut Ui, logo: &TextureHandle) {
+pub fn render_header(ui: &mut Ui, logo: &TextureHandle) {
     ui.horizontal(|ui| {
         ui.image(logo, [50., 50.]);
         ui.label(

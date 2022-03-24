@@ -1,6 +1,7 @@
 use crate::{
-    button, draw_line, header, input, input_with_label, is_string_numeric, sanitize_inputs,
-    section, BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK,
+    button, get_file_name_from_path, is_string_numeric, render_draw_line, render_header,
+    render_input, render_input_with_label, render_section, sanitize_inputs, BACKGROUND, GREY_WHITE,
+    MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, YELLOW,
 };
 use chrono::NaiveDateTime;
 use eframe::{
@@ -16,7 +17,7 @@ use eframe::{
 use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
-    fs,
+    fs, path,
 };
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -44,6 +45,7 @@ pub struct Deadliner<'a> {
     textures: HashMap<&'a str, TextureHandle>,
 
     error_msg: String,
+    invalid_bg: bool,
 
     conf: DeadlinerConf,
 }
@@ -176,10 +178,10 @@ impl<'a> App for Deadliner<'a> {
         );
 
         central_panel.show(ctx, |ui| {
-            header(ui, logo);
-            draw_line(ui, 2.);
+            render_header(ui, logo);
+            render_draw_line(ui, 2.);
 
-            section(ui, "Styling", |ui| {
+            render_section(ui, "Styling", |ui| {
                 ui.horizontal(|ui| {
                     ui.label("Background:");
 
@@ -220,15 +222,42 @@ impl<'a> App for Deadliner<'a> {
                     }
                     BackgroundOptions::FromDisk => {
                         ui.horizontal(|ui| {
-                            ui.label("Image Location:");
-                            ui.add(
-                                egui::TextEdit::singleline(&mut self.conf.bg_location)
-                                    .desired_width(180.)
-                                    .hint_text(
-                                        RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
-                                            .color(Color32::from_white_alpha(45)),
-                                    ),
-                            );
+                            if ui.button("Open file…").clicked() {
+                                if let Some(path) = rfd::FileDialog::new().pick_file() {
+                                    let location = path.display().to_string();
+                                    let file_name = get_file_name_from_path(&location);
+                                    let supported_file_ext = ["png", "gif", "jpg", "jpeg"];
+                                    let file_ext =
+                                        file_name.split(".").collect::<Vec<&str>>().pop().unwrap();
+
+                                    if supported_file_ext.contains(&file_ext) {
+                                        self.invalid_bg = false;
+                                        self.conf.bg_location = location;
+                                    } else {
+                                        self.invalid_bg = true;
+                                    }
+                                }
+                            }
+
+                            if self.invalid_bg {
+                                ui.colored_label(Color32::from_rgb(255, 48, 48), "Not an Image");
+                            }
+
+                            if !self.conf.bg_location.is_empty() {
+                                ui.colored_label(
+                                    Color32::from_rgba_unmultiplied(254, 216, 67, 200),
+                                    get_file_name_from_path(&self.conf.bg_location),
+                                );
+                            }
+
+                            // ui.add(
+                            //     egui::TextEdit::singleline(&mut self.conf.bg_location)
+                            //         .desired_width(180.)
+                            //         .hint_text(
+                            //             RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
+                            //                 .color(Color32::from_white_alpha(45)),
+                            //         ),
+                            // );
                         });
                     }
                 }
@@ -285,19 +314,19 @@ impl<'a> App for Deadliner<'a> {
                 });
             });
 
-            section(ui, "Pick your Deadline", |ui| {
+            render_section(ui, "Pick your Deadline", |ui| {
                 let date_error_popup_id = ui.make_persistent_id("invalid-date-error");
 
-                input_with_label(ui, "Date:", &mut self.conf.date, "2022-08-26");
+                render_input_with_label(ui, "Date:", &mut self.conf.date, "2022-08-26");
 
                 ui.add_space(PADDING);
 
                 ui.horizontal(|ui| {
                     ui.label("Time:");
 
-                    input(ui, &mut self.conf.hours, "7", 18.);
+                    render_input(ui, &mut self.conf.hours, "7", 18.);
                     ui.label(":");
-                    input(ui, &mut self.conf.minutes, "28", 18.);
+                    render_input(ui, &mut self.conf.minutes, "28", 18.);
 
                     // Check if inputs are numeric
                     if !is_string_numeric(&self.conf.hours) {
@@ -355,6 +384,7 @@ impl<'a> Deadliner<'a> {
         Deadliner {
             textures: HashMap::new(),
             error_msg: String::new(),
+            invalid_bg: false,
             conf: DeadlinerConf {
                 background: BackgroundOptions::Solid,
                 bg_color: [0, 0, 0],

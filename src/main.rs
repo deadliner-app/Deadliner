@@ -24,7 +24,6 @@ fn main() {
             height: icon_height,
             rgba: icon.into_raw(),
         }),
-        transparent: true,
         ..Default::default()
     };
 

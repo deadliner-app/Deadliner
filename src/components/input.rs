@@ -4,7 +4,7 @@ use eframe::{
     epaint::Color32,
 };
 
-pub fn input_with_label<'a, T>(ui: &mut Ui, label: &str, value: &'a mut T, placeholder: &str)
+pub fn render_input_with_label<'a, T>(ui: &mut Ui, label: &str, value: &'a mut T, placeholder: &str)
 where
     T: TextBuffer,
 {
@@ -19,7 +19,7 @@ where
     });
 }
 
-pub fn input<'a, T>(ui: &mut Ui, value: &'a mut T, placeholder: &str, width: f32)
+pub fn render_input<'a, T>(ui: &mut Ui, value: &'a mut T, placeholder: &str, width: f32)
 where
     T: TextBuffer,
 {

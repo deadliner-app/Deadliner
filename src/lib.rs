@@ -9,7 +9,7 @@ pub use deadliner::*;
 pub use design_system::*;
 pub use update_wallpaper::*;
 
-use std::thread;
+use std::{path, thread};
 
 fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
@@ -80,4 +80,11 @@ pub fn is_string_numeric(word: &str) -> bool {
         }
     }
     return true;
+}
+
+pub fn get_file_name_from_path(file_path: &str) -> &str {
+    let location_paths: Vec<&str> = file_path.split(path::MAIN_SEPARATOR).collect();
+    let file_name = location_paths[location_paths.len() - 1];
+
+    file_name
 }
