@@ -1,14 +1,14 @@
-use std::{fs, time::Instant};
+use std::fs;
 
 use chrono::Local;
-use image::{DynamicImage, EncodableLayout, Rgb, RgbImage};
+use image::{DynamicImage, Rgb, RgbImage};
 use imageproc::{
     drawing::{draw_filled_rect_mut, Canvas},
     rect::Rect,
 };
 use text_to_png::TextRenderer;
 
-use crate::{BackgroundOptions, SanitizedConf, WHITE};
+use crate::{download_image, BackgroundOptions, SanitizedConf};
 
 pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
@@ -34,12 +34,12 @@ pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let deadline_str = format!("{} Days, {} Hours Left.", remaining_days, remaining_hours);
 
     // TODO: Prevent blocking the main thread cause it freezes the UI.
-    let file_path = generate_wallpaper(&deadline_str, conf);
+    let file_path = generate_wallpaper(&deadline_str, &conf);
 
     match file_path {
         Ok(file_path) => {
             // Sets the wallpaper for the current desktop from a URL.
-            wallpaper::set_mode(wallpaper::Mode::Center).unwrap();
+            wallpaper::set_mode(conf.bg_mode).unwrap();
             wallpaper::set_from_path(&file_path).unwrap();
 
             Ok(())
@@ -48,7 +48,7 @@ pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     }
 }
 
-fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> Result<String, String> {
+fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String, String> {
     let font_date_bytes = fs::read(&format!("./assets/fonts/{:?}.ttf", conf.font)).unwrap();
 
     let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
@@ -62,7 +62,7 @@ fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> Result<String,
     let mut background;
 
     if conf.bg_type == BackgroundOptions::FromDisk {
-        background = image::open(conf.bg_location.unwrap()).unwrap();
+        background = image::open(conf.bg_location.as_ref().unwrap()).unwrap();
     } else if conf.bg_type == BackgroundOptions::Solid {
         let mut image = RgbImage::new(1920, 1080);
 
@@ -74,7 +74,14 @@ fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> Result<String,
 
         background = DynamicImage::ImageRgb8(image);
     } else {
-        background = image::open(conf.bg_location.unwrap()).unwrap();
+        let downloaded_image = download_image(conf.bg_url.as_ref().unwrap()).unwrap();
+
+        background = image::io::Reader::open(downloaded_image)
+            .unwrap()
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap();
     }
 
     if background.width() <= text_png.size.width || background.height() <= text_png.size.height {
@@ -91,7 +98,7 @@ fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> Result<String,
     image::imageops::overlay(&mut background, &text_image, x, y);
 
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
-    let file_path = cache_dir.join("result.png");
+    let file_path = cache_dir.join("./deadliner/result.png");
     let file_path = file_path.to_str().unwrap().to_owned();
 
     match background.save(&file_path) {

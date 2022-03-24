@@ -1,4 +1,6 @@
-// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+
+use std::fs;
 
 use deadliner::Deadliner;
 use eframe::{
@@ -8,6 +10,14 @@ use eframe::{
 };
 
 fn main() {
+    // Setup deadliner dir for cache beforehand
+    let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
+    let deadliner_cache = cache_dir.join("deadliner");
+
+    if !deadliner_cache.exists() {
+        fs::create_dir(deadliner_cache).unwrap();
+    }
+
     let app = Deadliner::new();
 
     let icon = image::open("assets/icon.png")

@@ -792,6 +792,7 @@ dependencies = [
  "eframe",
  "image",
  "imageproc",
+ "reqwest",
  "rfd",
  "strum",
  "strum_macros",

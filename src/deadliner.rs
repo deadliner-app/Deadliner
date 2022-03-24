@@ -25,6 +25,7 @@ use strum_macros::EnumIter;
 
 pub struct DeadlinerConf {
     pub background: BackgroundOptions,
+    pub wallpaper_mode: WallpaperMode,
 
     pub bg_color: [u8; 3],
     pub bg_url: String,
@@ -81,20 +82,12 @@ pub enum UpdateEvery {
     Minute,
 }
 
-#[derive(Debug)]
-pub struct SanitizedConf {
-    pub bg_type: BackgroundOptions,
-    pub bg_color: Option<String>,
-    pub bg_color_arr: [u8; 3],
-    pub bg_url: Option<String>,
-    pub bg_location: Option<String>,
-
-    pub update_every: UpdateEvery,
-    pub font: Font,
-    pub font_size: u8,
-    pub font_color: String,
-
-    pub deadline: NaiveDateTime,
+#[derive(Debug, PartialEq, Clone, Copy, EnumIter)]
+pub enum WallpaperMode {
+    Center,
+    Crop,
+    Fit,
+    Span,
 }
 
 impl<'a> App for Deadliner<'a> {
@@ -246,25 +239,36 @@ impl<'a> App for Deadliner<'a> {
 
                             if self.invalid_bg {
                                 ui.colored_label(Color32::from_rgb(255, 48, 48), "Not an Image");
-                            }
-
-                            if !self.conf.bg_location.is_empty() {
+                            } else if !self.conf.bg_location.is_empty() {
                                 ui.colored_label(
                                     Color32::from_rgba_unmultiplied(254, 216, 67, 200),
                                     get_file_name_from_path(&self.conf.bg_location),
                                 );
                             }
-
-                            // ui.add(
-                            //     egui::TextEdit::singleline(&mut self.conf.bg_location)
-                            //         .desired_width(180.)
-                            //         .hint_text(
-                            //             RichText::new("C:\\Users\\yassi\\Pictures\\background.png")
-                            //                 .color(Color32::from_white_alpha(45)),
-                            //         ),
-                            // );
                         });
                     }
+                }
+
+                if self.conf.background == BackgroundOptions::FromDisk
+                    || self.conf.background == BackgroundOptions::FromURL
+                {
+                    ui.add_space(PADDING);
+
+                    ui.horizontal(|ui| {
+                        ui.label("Wallpaper Mode:");
+
+                        ComboBox::from_id_source("background_mode")
+                            .selected_text(format!("{:?}", self.conf.wallpaper_mode))
+                            .show_ui(ui, |ui| {
+                                for option in WallpaperMode::iter().collect::<Vec<_>>() {
+                                    ui.selectable_value(
+                                        &mut self.conf.wallpaper_mode,
+                                        option,
+                                        format!("{:?}", option),
+                                    );
+                                }
+                            });
+                    });
                 }
 
                 ui.add_space(PADDING);
@@ -308,7 +312,7 @@ impl<'a> App for Deadliner<'a> {
 
                 ui.horizontal(|ui| {
                     ui.label("Font Size:");
-                    ui.add(egui::Slider::new(&mut self.conf.font_size, 0..=200));
+                    ui.add(egui::Slider::new(&mut self.conf.font_size, 5..=255));
                 });
 
                 ui.add_space(PADDING);
@@ -404,6 +408,7 @@ impl<'a> Deadliner<'a> {
                 period: Periods::AM,
                 font_size: 100,
                 font_color: [255, 255, 255],
+                wallpaper_mode: WallpaperMode::Center,
             },
         }
     }

@@ -1,15 +1,38 @@
 mod components;
 mod deadliner;
 mod design_system;
+mod short_hash;
 mod update_wallpaper;
 
-use chrono::NaiveDateTime;
 pub use components::*;
 pub use deadliner::*;
 pub use design_system::*;
+pub use short_hash::*;
 pub use update_wallpaper::*;
 
-use std::{path, thread};
+use chrono::NaiveDateTime;
+use std::error::Error;
+use std::time::Instant;
+use std::{fs::File, path};
+use wallpaper::Mode;
+
+#[derive(Debug)]
+pub struct SanitizedConf {
+    bg_type: BackgroundOptions,
+    bg_color: Option<String>,
+    bg_color_arr: [u8; 3],
+    bg_url: Option<String>,
+    bg_location: Option<String>,
+
+    bg_mode: Mode,
+
+    update_every: UpdateEvery,
+    font: Font,
+    font_size: u8,
+    font_color: String,
+
+    deadline: NaiveDateTime,
+}
 
 fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
@@ -17,6 +40,7 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     }
 
     let mut sanitized_conf = SanitizedConf {
+        bg_mode: map_wallpaper_mode_enum(conf.wallpaper_mode),
         bg_color: None,
         bg_color_arr: conf.bg_color,
         bg_url: None,
@@ -85,4 +109,27 @@ pub fn get_file_name_from_path(file_path: &str) -> &str {
     let file_name = location_paths[location_paths.len() - 1];
 
     file_name
+}
+
+type DownloadResult<T> = std::result::Result<T, Box<dyn Error>>;
+
+pub fn download_image(url: &str) -> DownloadResult<String> {
+    let cache_dir = dirs::cache_dir().ok_or("no cache dir")?;
+    let file_path = cache_dir.join(format!("./deadliner/{}.png", unique_hash(url)));
+
+    if !file_path.exists() {
+        let mut file = File::create(&file_path)?;
+        reqwest::blocking::get(url)?.copy_to(&mut file)?;
+    }
+
+    Ok(file_path.to_str().to_owned().ok_or("no file path")?.into())
+}
+
+pub fn map_wallpaper_mode_enum(mode: WallpaperMode) -> Mode {
+    match mode {
+        WallpaperMode::Center => Mode::Center,
+        WallpaperMode::Crop => Mode::Crop,
+        WallpaperMode::Fit => Mode::Fit,
+        WallpaperMode::Span => Mode::Span,
+    }
 }
