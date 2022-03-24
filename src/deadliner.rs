@@ -14,13 +14,15 @@ use eframe::{
     epaint::{Color32, FontFamily, FontId, Rounding, Stroke, TextureHandle},
     epi::App,
 };
+use image::GenericImageView;
 use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
-    fs, path,
+    fs,
 };
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+
 pub struct DeadlinerConf {
     pub background: BackgroundOptions,
 
@@ -43,6 +45,7 @@ pub struct DeadlinerConf {
 pub struct Deadliner<'a> {
     // Preloaded textures on setup to use in the lifecycle methods.
     textures: HashMap<&'a str, TextureHandle>,
+    screen: (i32, i32),
 
     error_msg: String,
     invalid_bg: bool,
@@ -80,7 +83,9 @@ pub enum UpdateEvery {
 
 #[derive(Debug)]
 pub struct SanitizedConf {
+    pub bg_type: BackgroundOptions,
     pub bg_color: Option<String>,
+    pub bg_color_arr: [u8; 3],
     pub bg_url: Option<String>,
     pub bg_location: Option<String>,
 
@@ -385,6 +390,7 @@ impl<'a> Deadliner<'a> {
             textures: HashMap::new(),
             error_msg: String::new(),
             invalid_bg: false,
+            screen: (0, 0),
             conf: DeadlinerConf {
                 background: BackgroundOptions::Solid,
                 bg_color: [0, 0, 0],

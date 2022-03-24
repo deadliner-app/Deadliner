@@ -1,6 +1,6 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use deadliner::{update_wallpaper, Deadliner};
+use deadliner::Deadliner;
 use eframe::{
     epaint::{Pos2, Vec2},
     epi::IconData,
@@ -17,8 +17,8 @@ fn main() {
     let (icon_width, icon_height) = icon.dimensions();
 
     let win_options = NativeOptions {
-        initial_window_pos: Some(Pos2 { x: 1500., y: 400. }),
-        initial_window_size: Some(Vec2::new(400., 600.)),
+        initial_window_pos: Some(Pos2 { x: 1500., y: 390. }),
+        initial_window_size: Some(Vec2::new(400., 610.)),
         icon_data: Some(IconData {
             width: icon_width,
             height: icon_height,

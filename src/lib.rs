@@ -18,11 +18,13 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
 
     let mut sanitized_conf = SanitizedConf {
         bg_color: None,
+        bg_color_arr: conf.bg_color,
         bg_url: None,
         bg_location: None,
         update_every: conf.update_every,
         font: conf.font,
         font_size: conf.font_size,
+        bg_type: conf.background,
 
         // Just a placeholder till we convert RGB to HEX
         font_color: String::new(),
@@ -65,12 +67,8 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         Err(_) => return Err(String::from("Invalid date input!")),
     }
 
-    thread::spawn(move || {
-        // Here we setup a schedule every "period" to update the wallpaper
-        update_wallpaper(sanitized_conf);
-    });
-
-    Ok(())
+    // Here we setup a schedule every "period" to update the wallpaper
+    update_wallpaper(sanitized_conf)
 }
 
 pub fn is_string_numeric(word: &str) -> bool {

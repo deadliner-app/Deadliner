@@ -1,15 +1,21 @@
-use std::fs;
+use std::{fs, time::Instant};
 
 use chrono::Local;
+use image::{DynamicImage, EncodableLayout, Rgb, RgbImage};
+use imageproc::{
+    drawing::{draw_filled_rect_mut, Canvas},
+    rect::Rect,
+};
 use text_to_png::TextRenderer;
 
-use crate::SanitizedConf;
+use crate::{BackgroundOptions, SanitizedConf, WHITE};
 
-pub fn update_wallpaper(conf: SanitizedConf) {
+pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
     let deadline = conf.deadline;
     let diff = deadline.signed_duration_since(today);
 
+    let minutes = diff.num_minutes();
     let days = diff.num_days();
     let hours = diff.num_hours();
 
@@ -21,18 +27,28 @@ pub fn update_wallpaper(conf: SanitizedConf) {
     let remaining_days = days;
     let remaining_hours = hours - remaining_days * 24;
 
+    if minutes <= 0 {
+        return Err(String::from("Deadline must be a future date!"));
+    }
+
     let deadline_str = format!("{} Days, {} Hours Left.", remaining_days, remaining_hours);
 
+    // TODO: Prevent blocking the main thread cause it freezes the UI.
     let file_path = generate_wallpaper(&deadline_str, conf);
 
-    // Sets the wallpaper for the current desktop from a URL.
-    wallpaper::set_mode(wallpaper::Mode::Center).unwrap();
-    wallpaper::set_from_path(&file_path).unwrap();
-    // Returns the wallpaper of the current desktop.
-    println!("{:?}", wallpaper::get());
+    match file_path {
+        Ok(file_path) => {
+            // Sets the wallpaper for the current desktop from a URL.
+            wallpaper::set_mode(wallpaper::Mode::Center).unwrap();
+            wallpaper::set_from_path(&file_path).unwrap();
+
+            Ok(())
+        }
+        Err(msg) => Err(msg),
+    }
 }
 
-fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> String {
+fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> Result<String, String> {
     let font_date_bytes = fs::read(&format!("./assets/fonts/{:?}.ttf", conf.font)).unwrap();
 
     let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
@@ -43,22 +59,45 @@ fn generate_wallpaper(deadline_str: &str, conf: SanitizedConf) -> String {
 
     let text_image = image::load_from_memory(&text_png.data).unwrap();
 
-    let mut background = image::open("./assets/background.png").unwrap();
+    let mut background;
+
+    if conf.bg_type == BackgroundOptions::FromDisk {
+        background = image::open(conf.bg_location.unwrap()).unwrap();
+    } else if conf.bg_type == BackgroundOptions::Solid {
+        let mut image = RgbImage::new(1920, 1080);
+
+        draw_filled_rect_mut(
+            &mut image,
+            Rect::at(0, 0).of_size(1920, 1080),
+            Rgb(conf.bg_color_arr),
+        );
+
+        background = DynamicImage::ImageRgb8(image);
+    } else {
+        background = image::open(conf.bg_location.unwrap()).unwrap();
+    }
+
+    if background.width() <= text_png.size.width || background.height() <= text_png.size.height {
+        return Err(String::from(
+            "Font size is bigger than wallpaper's dimensions!",
+        ));
+    }
 
     // 50% Background Image width or height - 50% Text Image width or height
     // To Center the text both horizontally and vertically
     let x = background.width() / 2 - text_png.size.width / 2;
     let y = background.height() / 2 - text_png.size.height / 2;
 
-    image::imageops::overlay(&mut background, &text_image, x as i64, y as i64);
+    image::imageops::overlay(&mut background, &text_image, x, y);
 
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
     let file_path = cache_dir.join("result.png");
     let file_path = file_path.to_str().unwrap().to_owned();
 
-    background
-        .save(&file_path)
-        .expect("Couldn't save result.png");
+    match background.save(&file_path) {
+        Err(_) => return Err(String::from("Couldn't save result.png")),
+        _ => {}
+    }
 
-    file_path
+    Ok(file_path)
 }
