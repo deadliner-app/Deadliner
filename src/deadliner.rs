@@ -442,7 +442,7 @@ impl<'a> Deadliner<'a> {
         text_styles.insert(
             TextStyle::Heading,
             FontId {
-                family: FontFamily::Name("Poppins-500".into()),
+                family: FontFamily::Name("Poppins-600".into()),
                 size: 35.,
             },
         );

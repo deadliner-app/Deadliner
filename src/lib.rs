@@ -13,7 +13,7 @@ use std::{path, thread};
 
 fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
-        return Err(String::from("Not enough Date Inputs"));
+        return Err(String::from("Not enough Inputs"));
     }
 
     let mut sanitized_conf = SanitizedConf {
