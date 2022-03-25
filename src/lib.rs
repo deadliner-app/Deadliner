@@ -12,7 +12,6 @@ pub use update_wallpaper::*;
 
 use chrono::NaiveDateTime;
 use std::error::Error;
-use std::time::Instant;
 use std::{fs::File, path};
 use wallpaper::Mode;
 
@@ -26,7 +25,11 @@ pub struct SanitizedConf {
 
     bg_mode: Mode,
 
-    update_every: UpdateEvery,
+    show_months: bool,
+    show_weeks: bool,
+    show_days: bool,
+    show_hours: bool,
+
     font: Font,
     font_size: u8,
     font_color: String,
@@ -35,7 +38,11 @@ pub struct SanitizedConf {
 }
 
 fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
-    if conf.date.is_empty() || conf.hours.is_empty() || conf.minutes.is_empty() {
+    if !(conf.show_months || conf.show_weeks || conf.show_days || conf.show_hours)
+        || conf.date.is_empty()
+        || conf.hours.is_empty()
+        || conf.minutes.is_empty()
+    {
         return Err(String::from("Not enough Inputs"));
     }
 
@@ -45,10 +52,14 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         bg_color_arr: conf.bg_color,
         bg_url: None,
         bg_location: None,
-        update_every: conf.update_every,
         font: conf.font,
         font_size: conf.font_size,
         bg_type: conf.background,
+
+        show_months: conf.show_months,
+        show_weeks: conf.show_weeks,
+        show_days: conf.show_days,
+        show_hours: conf.show_hours,
 
         // Just a placeholder till we convert RGB to HEX
         font_color: String::new(),

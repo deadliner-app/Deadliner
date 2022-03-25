@@ -16,22 +16,71 @@ pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let diff = deadline.signed_duration_since(today);
 
     let minutes = diff.num_minutes();
-    let days = diff.num_days();
-    let hours = diff.num_hours();
+
+    let remaining_days = diff.num_days();
+    let months = remaining_days / 30;
+    let mut weeks = remaining_days / 7;
+    let mut days = remaining_days;
+    let mut hours = diff.num_hours();
+
+    if conf.show_months {
+        // Month = 30 days - Month = 4 Weeks = 28 days
+        // Reminder is 2 days from the 4 weeks of each month
+        let days_in_months = months * 30;
+        let weeks_in_months = days_in_months / 7;
+        let days_reminder = days_in_months - weeks_in_months * 7;
+
+        weeks = weeks - weeks_in_months;
+        days = days - months * (30 - days_reminder);
+        hours = hours - months * (30 - days_reminder) * 24;
+    }
+
+    if conf.show_weeks {
+        days = days - weeks * 7;
+        hours = hours - weeks * 7 * 24;
+    }
+
+    if conf.show_days {
+        hours = hours - days * 24
+    }
 
     // TODO: approximate values
     // Ex: 1 hour and 31 minutes
     // Should be "2 hours remaining"
     // And not "1 hours remaining"
 
-    let remaining_days = days;
-    let remaining_hours = hours - remaining_days * 24;
+    let mut deadline_str = String::new();
+
+    if conf.show_months {
+        deadline_str.push_str(&format!("{} Months", months));
+    }
+
+    if conf.show_weeks {
+        if conf.show_months {
+            deadline_str.push_str(", ");
+        }
+        deadline_str.push_str(&format!("{} Weeks", weeks));
+    }
+
+    if conf.show_days {
+        if conf.show_months || conf.show_weeks {
+            deadline_str.push_str(", ");
+        }
+        deadline_str.push_str(&format!("{} Days", days));
+    }
+
+    if conf.show_hours {
+        if conf.show_months || conf.show_weeks || conf.show_days {
+            deadline_str.push_str(", ");
+        }
+        deadline_str.push_str(&format!("{} Hours", hours));
+    }
+
+    deadline_str.push_str(" Left.");
 
     if minutes <= 0 {
         return Err(String::from("Deadline must be a future date!"));
     }
-
-    let deadline_str = format!("{} Days, {} Hours Left.", remaining_days, remaining_hours);
 
     // TODO: Prevent blocking the main thread cause it freezes the UI.
     let file_path = generate_wallpaper(&deadline_str, &conf);

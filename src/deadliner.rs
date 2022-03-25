@@ -30,7 +30,10 @@ pub struct DeadlinerConf {
     pub bg_url: String,
     pub bg_location: String,
 
-    pub update_every: UpdateEvery,
+    pub show_months: bool,
+    pub show_weeks: bool,
+    pub show_days: bool,
+    pub show_hours: bool,
 
     pub font: Font,
     pub font_size: u8,
@@ -72,13 +75,6 @@ pub enum Font {
     PoppinsMedium,
     PoppinsRegular,
     PoppinsLight,
-}
-
-#[derive(Debug, PartialEq, Clone, Copy, EnumIter)]
-pub enum UpdateEvery {
-    Day,
-    Hour,
-    Minute,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, EnumIter)]
@@ -274,19 +270,11 @@ impl<'a> App for Deadliner<'a> {
                 ui.add_space(PADDING);
 
                 ui.horizontal(|ui| {
-                    ui.label("Update every:");
-
-                    ComboBox::from_id_source("update_every")
-                        .selected_text(format!("{:?}", self.conf.update_every))
-                        .show_ui(ui, |ui| {
-                            for option in UpdateEvery::iter().collect::<Vec<_>>() {
-                                ui.selectable_value(
-                                    &mut self.conf.update_every,
-                                    option,
-                                    format!("{:?}", option),
-                                );
-                            }
-                        });
+                    ui.label("Time in:");
+                    ui.checkbox(&mut self.conf.show_hours, "Hours");
+                    ui.checkbox(&mut self.conf.show_days, "Days");
+                    ui.checkbox(&mut self.conf.show_weeks, "Weeks");
+                    ui.checkbox(&mut self.conf.show_months, "Months");
                 });
 
                 ui.add_space(PADDING);
@@ -407,7 +395,6 @@ impl<'a> Deadliner<'a> {
                 bg_color: [0, 0, 0],
                 bg_location: String::new(),
                 bg_url: String::new(),
-                update_every: UpdateEvery::Hour,
                 font: Font::PoppinsBlack,
                 date: String::new(),
                 hours: String::new(),
@@ -416,6 +403,10 @@ impl<'a> Deadliner<'a> {
                 font_size: 100,
                 font_color: [255, 255, 255],
                 wallpaper_mode: WallpaperMode::Center,
+                show_hours: true,
+                show_days: true,
+                show_weeks: false,
+                show_months: false,
             },
         }
     }
