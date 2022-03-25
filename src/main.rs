@@ -27,8 +27,8 @@ fn main() {
     let (icon_width, icon_height) = icon.dimensions();
 
     let win_options = NativeOptions {
-        initial_window_pos: Some(Pos2 { x: 1500., y: 390. }),
-        initial_window_size: Some(Vec2::new(400., 610.)),
+        initial_window_pos: Some(Pos2 { x: 1500., y: 370. }),
+        initial_window_size: Some(Vec2::new(400., 630.)),
         icon_data: Some(IconData {
             width: icon_width,
             height: icon_height,

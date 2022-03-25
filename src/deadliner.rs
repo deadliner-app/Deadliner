@@ -1,9 +1,8 @@
 use crate::{
-    button, get_file_name_from_path, is_string_numeric, render_draw_line, render_header,
+    button, draw_line, get_file_name_from_path, is_string_numeric, render_footer, render_header,
     render_input, render_input_with_label, render_section, sanitize_inputs, BACKGROUND, GREY_WHITE,
     MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, YELLOW,
 };
-use chrono::NaiveDateTime;
 use eframe::{
     self,
     egui::{
@@ -98,6 +97,7 @@ impl<'a> App for Deadliner<'a> {
         _storage: Option<&dyn eframe::epi::Storage>,
     ) {
         self.load_logo_texture(ctx);
+        self.load_footer_github_texture(ctx);
         self.set_custom_fonts(ctx);
 
         // ctx.set_debug_on_hover(true);
@@ -177,7 +177,7 @@ impl<'a> App for Deadliner<'a> {
 
         central_panel.show(ctx, |ui| {
             render_header(ui, logo);
-            render_draw_line(ui, 2.);
+            draw_line(ui, 2.);
 
             render_section(ui, "Styling", |ui| {
                 ui.horizontal(|ui| {
@@ -380,6 +380,13 @@ impl<'a> App for Deadliner<'a> {
                     }
                 };
             });
+
+            let github = self
+                .textures
+                .get("github")
+                .expect("Github texture wasn't preloaded");
+
+            render_footer(&ctx, ui, github);
         });
     }
 
@@ -415,6 +422,7 @@ impl<'a> Deadliner<'a> {
 
     fn set_custom_fonts(&mut self, ctx: &Context) {
         let mut fonts = FontDefinitions::default();
+
         let fonts_data: Vec<(&str, u16, Vec<u8>)> = vec![
             (
                 "Poppins-Regular",
@@ -433,6 +441,16 @@ impl<'a> Deadliner<'a> {
             ),
         ];
 
+        // Emoji Fonts
+        fonts.font_data.insert(
+            "emoji-icon-font".to_owned(),
+            FontData::from_owned(fs::read("./assets/fonts/EmojiFont.ttf").unwrap()),
+        );
+        fonts.font_data.insert(
+            "noto-emoji-font".to_owned(),
+            FontData::from_owned(fs::read("./assets/fonts/NotoEmojiRegular.ttf").unwrap()),
+        );
+
         // Insert all of the fonts data
         for (name, font_weight, buffer) in fonts_data {
             fonts
@@ -441,7 +459,12 @@ impl<'a> Deadliner<'a> {
 
             fonts.families.insert(
                 FontFamily::Name(format!("Poppins-{}", font_weight).into()),
-                vec![name.into()],
+                vec![
+                    name.into(),
+                    // Add emoji fonts as a fallback
+                    "noto-emoji-font".into(),
+                    "emoji-icon-font".into(),
+                ],
             );
         }
 
@@ -482,6 +505,14 @@ impl<'a> Deadliner<'a> {
             },
         );
 
+        text_styles.insert(
+            TextStyle::Small,
+            FontId {
+                family: FontFamily::Name("Poppins-400".into()),
+                size: 12.,
+            },
+        );
+
         ctx.set_style(egui::Style {
             text_styles,
             ..Default::default()
@@ -500,5 +531,19 @@ impl<'a> Deadliner<'a> {
         );
 
         self.textures.insert("logo", texture);
+    }
+
+    fn load_footer_github_texture(&mut self, ctx: &Context) {
+        let image = image::load_from_memory(include_bytes!("../assets/github.png")).unwrap();
+        let size = [image.width() as _, image.height() as _];
+        let image_buffer = image.to_rgba8();
+        let pixels = image_buffer.as_flat_samples();
+
+        let texture = ctx.load_texture(
+            "github",
+            egui::ColorImage::from_rgba_unmultiplied(size, pixels.as_slice()),
+        );
+
+        self.textures.insert("github", texture);
     }
 }
