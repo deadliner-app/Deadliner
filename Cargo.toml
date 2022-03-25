@@ -1,21 +1,5 @@
-[package]
-name = "deadliner"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-wallpaper = { version = "3", features = ["from_url"] }
-image = "0.23.14"
-imageproc = "0.22.0"
-text-to-png = "0.2.0"
-dirs = "4.0.0"
-eframe = "0.17.0" # Gives us egui, epi and web+native backends
-systray = "0.4.0"
-chrono = "0.4.19"
-strum = "0.17.1"
-strum_macros = "0.17.1"
-rfd = "0.8.1"
-winit = "0.26.1"
-reqwest = "0.11.10"
+[workspace]
+members = [
+    "crates/gui",
+    "crates/background-job"
+]

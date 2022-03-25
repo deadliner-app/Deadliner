@@ -11,7 +11,9 @@ pub use short_hash::*;
 pub use update_wallpaper::*;
 
 use chrono::NaiveDateTime;
+use std::env;
 use std::error::Error;
+use std::path::PathBuf;
 use std::{fs::File, path};
 use wallpaper::Mode;
 
@@ -143,4 +145,12 @@ pub fn map_wallpaper_mode_enum(mode: WallpaperMode) -> Mode {
         WallpaperMode::Fit => Mode::Fit,
         WallpaperMode::Span => Mode::Span,
     }
+}
+
+pub fn new_path(path: &str) -> PathBuf {
+    let mut exe_location = env::current_exe().unwrap();
+
+    exe_location.pop();
+
+    exe_location.join(path)
 }

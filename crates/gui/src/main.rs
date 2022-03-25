@@ -1,8 +1,8 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::fs;
+use std::{env, fs};
 
-use deadliner::Deadliner;
+use deadliner_gui::{new_path, Deadliner};
 use eframe::{
     epaint::{Pos2, Vec2},
     epi::IconData,
@@ -20,7 +20,7 @@ fn main() {
 
     let app = Deadliner::new();
 
-    let icon = image::open("assets/icon.png")
+    let icon = image::open(new_path("assets/icon.png"))
         .expect("Failed to open icon path")
         .to_rgba8();
 

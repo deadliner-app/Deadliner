@@ -1,7 +1,7 @@
 use crate::{
-    button, draw_line, get_file_name_from_path, is_string_numeric, render_footer, render_header,
-    render_input, render_input_with_label, render_section, sanitize_inputs, BACKGROUND, GREY_WHITE,
-    MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, YELLOW,
+    button, draw_line, get_file_name_from_path, is_string_numeric, new_path, render_footer,
+    render_header, render_input, render_input_with_label, render_section, sanitize_inputs,
+    BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, YELLOW,
 };
 use eframe::{
     self,
@@ -418,28 +418,28 @@ impl<'a> Deadliner<'a> {
             (
                 "Poppins-Regular",
                 400,
-                fs::read("./assets/fonts/PoppinsLight.ttf").unwrap(),
+                fs::read(new_path("assets/fonts/PoppinsLight.ttf")).unwrap(),
             ),
             (
                 "Poppins-Medium",
                 500,
-                fs::read("./assets/fonts/PoppinsRegular.ttf").unwrap(),
+                fs::read(new_path("assets/fonts/PoppinsRegular.ttf")).unwrap(),
             ),
             (
                 "Poppins-SemiBold",
                 600,
-                fs::read("./assets/fonts/PoppinsMedium.ttf").unwrap(),
+                fs::read(new_path("assets/fonts/PoppinsMedium.ttf")).unwrap(),
             ),
         ];
 
         // Emoji Fonts
         fonts.font_data.insert(
             "emoji-icon-font".to_owned(),
-            FontData::from_owned(fs::read("./assets/fonts/EmojiFont.ttf").unwrap()),
+            FontData::from_owned(fs::read(new_path("assets/fonts/EmojiFont.ttf")).unwrap()),
         );
         fonts.font_data.insert(
             "noto-emoji-font".to_owned(),
-            FontData::from_owned(fs::read("./assets/fonts/NotoEmojiRegular.ttf").unwrap()),
+            FontData::from_owned(fs::read(new_path("assets/fonts/NotoEmojiRegular.ttf")).unwrap()),
         );
 
         // Insert all of the fonts data

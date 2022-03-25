@@ -1,0 +1,12 @@
+[package]
+name = "deadliner_background_job"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[[bin]]
+name = "bg-job"
+path = "src/main.rs"

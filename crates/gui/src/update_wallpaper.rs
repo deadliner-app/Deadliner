@@ -8,7 +8,7 @@ use imageproc::{
 };
 use text_to_png::TextRenderer;
 
-use crate::{download_image, BackgroundOptions, SanitizedConf};
+use crate::{download_image, new_path, BackgroundOptions, SanitizedConf};
 
 pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
@@ -98,7 +98,7 @@ pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
 }
 
 fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String, String> {
-    let font_date_bytes = fs::read(&format!("./assets/fonts/{:?}.ttf", conf.font)).unwrap();
+    let font_date_bytes = fs::read(new_path(&format!("assets/fonts/{:?}.ttf", conf.font))).unwrap();
 
     let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
 
@@ -123,7 +123,14 @@ fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String
 
         background = DynamicImage::ImageRgb8(image);
     } else {
-        let downloaded_image = download_image(conf.bg_url.as_ref().unwrap()).unwrap();
+        let downloaded_image = match download_image(conf.bg_url.as_ref().unwrap()) {
+            Ok(img) => img,
+            Err(_) => {
+                return Err(String::from(
+                    "Couldn't download the Image from the supplied URL!",
+                ))
+            }
+        };
 
         background = image::io::Reader::open(downloaded_image)
             .unwrap()

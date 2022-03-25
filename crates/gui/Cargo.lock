@@ -784,11 +784,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7046468a81e6a002061c01e6a7c83139daf91b11c30e66795b13217c2d885c8b"
 
 [[package]]
-name = "deadliner_background_job"
-version = "0.1.0"
-
-[[package]]
-name = "deadliner_gui"
+name = "deadliner"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -1032,9 +1028,9 @@ dependencies = [
 
 [[package]]
 name = "enumflags2"
-version = "0.7.4"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b3ab37dc79652c9d85f1f7b6070d77d321d2467f5fe7b00d6b7a86c57b092ae"
+checksum = "a25c90b056b3f84111cf183cbeddef0d3a0bbe9a674f057e1a1533c315f24def"
 dependencies = [
  "enumflags2_derive",
  "serde",
@@ -1042,9 +1038,9 @@ dependencies = [
 
 [[package]]
 name = "enumflags2_derive"
-version = "0.7.4"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f58dc3c5e468259f19f2d46304a6b28f1c3d034442e14b322d2b850e36f6d5ae"
+checksum = "144ec79496cbab6f84fa125dc67be9264aef22eb8a28da8454d9c33f15108da4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1753,9 +1749,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.18"
+version = "0.14.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b26ae0a80afebe130861d90abf98e3814a4f28a4c6ffeb5ab8ebb2be311e0ef2"
+checksum = "043f0e083e9901b6cc658a77d1eb86f4fc650bbb977a4337dd63192826aa85dd"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -2016,9 +2012,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.16"
+version = "0.4.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6389c490849ff5bc16be905ae24bc913a9c8892e19b2341dbc175e14c341c2b8"
+checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
 dependencies = [
  "cfg-if 1.0.0",
 ]
@@ -2169,20 +2165,7 @@ checksum = "96d868f654c72e75f8687572699cdabe755f03effbb62542768e995d5b8d699d"
 dependencies = [
  "bitflags",
  "jni-sys",
- "ndk-sys 0.2.2",
- "num_enum",
- "thiserror",
-]
-
-[[package]]
-name = "ndk"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2032c77e030ddee34a6787a64166008da93f6a352b629261d0fee232b8742dd4"
-dependencies = [
- "bitflags",
- "jni-sys",
- "ndk-sys 0.3.0",
+ "ndk-sys",
  "num_enum",
  "thiserror",
 ]
@@ -2202,25 +2185,10 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "ndk 0.5.0",
+ "ndk",
  "ndk-context",
  "ndk-macro",
- "ndk-sys 0.2.2",
-]
-
-[[package]]
-name = "ndk-glue"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9ffb7443daba48349d545028777ca98853b018b4c16624aa01223bc29e078da"
-dependencies = [
- "lazy_static",
- "libc",
- "log",
- "ndk 0.6.0",
- "ndk-context",
- "ndk-macro",
- "ndk-sys 0.3.0",
+ "ndk-sys",
 ]
 
 [[package]]
@@ -2241,15 +2209,6 @@ name = "ndk-sys"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1bcdd74c20ad5d95aacd60ef9ba40fdf77f767051040541df557b7a9b2a2121"
-
-[[package]]
-name = "ndk-sys"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e5a6ae77c8ee183dcbbba6150e2e6b9f3f4196a7666c02a715a95692ec1fa97"
-dependencies = [
- "jni-sys",
-]
 
 [[package]]
 name = "nix"
@@ -2610,7 +2569,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "instant",
  "libc",
- "redox_syscall 0.2.12",
+ "redox_syscall 0.2.11",
  "smallvec",
  "winapi",
 ]
@@ -2871,9 +2830,9 @@ checksum = "41cc0f7e4d5d4544e8861606a285bb08d3e70712ccc7d2b84d7c0ccfaf4b05ce"
 
 [[package]]
 name = "redox_syscall"
-version = "0.2.12"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ae183fc1b06c149f0c1793e1eb447c8b04bfe46d48e9e48bfb8d2d7ed64ecf0"
+checksum = "8380fe0152551244f0747b1bf41737e0f8a74f97a14ccefd1148187271634f3c"
 dependencies = [
  "bitflags",
 ]
@@ -2896,7 +2855,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7776223e2696f1aa4c6b0170e83212f47296a00424305117d013dfe86fb0fe55"
 dependencies = [
  "getrandom 0.2.5",
- "redox_syscall 0.2.12",
+ "redox_syscall 0.2.11",
  "thiserror",
 ]
 
@@ -3416,7 +3375,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "fastrand",
  "libc",
- "redox_syscall 0.2.12",
+ "redox_syscall 0.2.11",
  "remove_dir_all",
  "winapi",
 ]
@@ -3996,7 +3955,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9c28b6b6a78440b02647358625e3febc90724126480b9da6a967b5f674b3554"
 dependencies = [
  "jni",
- "ndk-glue 0.6.1",
+ "ndk-glue",
  "url",
  "web-sys",
  "widestring",
@@ -4124,9 +4083,9 @@ dependencies = [
  "libc",
  "log",
  "mio",
- "ndk 0.5.0",
- "ndk-glue 0.5.1",
- "ndk-sys 0.2.2",
+ "ndk",
+ "ndk-glue",
+ "ndk-sys",
  "objc",
  "parking_lot",
  "percent-encoding",

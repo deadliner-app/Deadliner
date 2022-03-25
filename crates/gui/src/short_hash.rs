@@ -18,13 +18,12 @@ fn bitwise(string: &str) -> i32 {
     };
 
     for b in string.as_bytes() {
-        hash = ((hash << 5) - hash) + (*b as i32);
+        // Cast to i128 to prevent subtraction overflow
+        hash = ((hash << 5) as i128 - hash as i128) as i32 + (*b as i32);
     }
 
     hash
 }
-
-// CWcz72
 
 // 10进制转化成62进制以内的进制
 // convert 10 binary to customized binary, max is 62
