@@ -2,7 +2,7 @@ use crate::{
     button, draw_line, get_cache_dir, get_file_name_from_path, is_string_numeric, new_path,
     render_footer, render_header, render_input, render_input_with_label, render_section,
     save_inputs, BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT,
-    SECONDARY_DARK, YELLOW,
+    SECONDARY_DARK,
 };
 use eframe::{
     self,
@@ -52,7 +52,6 @@ pub struct DeadlinerConf {
 pub struct Deadliner<'a> {
     // Preloaded textures on setup to use in the lifecycle methods.
     textures: HashMap<&'a str, TextureHandle>,
-    screen: (i32, i32),
 
     error_msg: String,
     invalid_bg: bool,
@@ -403,7 +402,6 @@ impl<'a> Deadliner<'a> {
             textures: HashMap::new(),
             error_msg: String::new(),
             invalid_bg: false,
-            screen: (0, 0),
             conf: DeadlinerConf {
                 background: BackgroundOptions::Solid,
                 bg_color: [0, 0, 0],

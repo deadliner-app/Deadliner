@@ -1,12 +1,17 @@
-// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
 use std::fs;
 
 use deadliner_gui::{new_path, Deadliner};
 use eframe::{
     epaint::{Pos2, Vec2},
-    epi::IconData,
     run_native, NativeOptions,
+};
+use winit::{
+    dpi::PhysicalSize,
+    event_loop::EventLoop,
+    platform::windows::WindowBuilderExtWindows,
+    window::{Icon, WindowBuilder},
 };
 
 fn main() {
@@ -26,13 +31,32 @@ fn main() {
 
     let (icon_width, icon_height) = icon.dimensions();
 
+    // Get the primary screen dimensions
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
+        .with_window_icon(Some(
+            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_taskbar_icon(Some(
+            Icon::from_rgba(icon.into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_visible(false)
+        .build(&event_loop)
+        .unwrap();
+
+    let PhysicalSize { width, height } = window.primary_monitor().unwrap().size();
+
+    // Set the initial window position at the very bottom right
+    let app_width = 400.;
+    let app_height = 630.;
+    let taskbar_approx_height = 65.;
+    let padding = 15.;
+
     let win_options = NativeOptions {
-        initial_window_pos: Some(Pos2 { x: 1500., y: 370. }),
-        initial_window_size: Some(Vec2::new(400., 630.)),
-        icon_data: Some(IconData {
-            width: icon_width,
-            height: icon_height,
-            rgba: icon.into_raw(),
+        initial_window_size: Some(Vec2::new(app_width, app_height)),
+        initial_window_pos: Some(Pos2 {
+            x: width as f32 - app_width - padding,
+            y: height as f32 - app_height - padding - taskbar_approx_height,
         }),
         ..Default::default()
     };

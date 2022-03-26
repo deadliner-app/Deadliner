@@ -690,6 +690,7 @@ dependencies = [
  "strum_macros",
  "text-to-png",
  "wallpaper",
+ "winit",
 ]
 
 [[package]]
