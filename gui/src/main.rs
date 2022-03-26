@@ -10,7 +10,6 @@ use eframe::{
 use winit::{
     dpi::PhysicalSize,
     event_loop::EventLoop,
-    platform::windows::WindowBuilderExtWindows,
     window::{Icon, Window, WindowBuilder},
 };
 
@@ -57,6 +56,7 @@ fn build_window(event_loop: EventLoop<()>) -> Window {
     let (icon_width, icon_height) = icon.dimensions();
 
     #[cfg(target_os = "windows")]
+    use winit::platform::windows::WindowBuilderExtWindows;
     let window = WindowBuilder::new()
         .with_window_icon(Some(
             Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
