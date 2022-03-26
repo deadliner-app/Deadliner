@@ -411,6 +411,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "confy"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2913470204e9e8498a0f31f17f90a0de801ae92c8c5ac18c49af4819e6786697"
+dependencies = [
+ "directories",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -656,18 +667,24 @@ checksum = "7046468a81e6a002061c01e6a7c83139daf91b11c30e66795b13217c2d885c8b"
 [[package]]
 name = "deadliner_background_job"
 version = "0.1.0"
+dependencies = [
+ "deadliner_gui",
+]
 
 [[package]]
 name = "deadliner_gui"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "confy",
  "dirs 4.0.0",
  "eframe",
  "image",
  "imageproc",
  "reqwest",
  "rfd",
+ "serde",
+ "serde_json",
  "strum",
  "strum_macros",
  "text-to-png",
@@ -720,6 +737,16 @@ name = "detect-desktop-environment"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21d8ad60dd5b13a4ee6bd8fa2d5d88965c597c67bce32b5fc49c94f55cb50810"
+
+[[package]]
+name = "directories"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "551a778172a450d7fc12e629ca3b0428d00f6afa9a43da1b630d54604e97371c"
+dependencies = [
+ "cfg-if 0.1.10",
+ "dirs-sys",
+]
 
 [[package]]
 name = "dirs"

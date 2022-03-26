@@ -1,23 +1,25 @@
 mod components;
 mod deadliner;
 mod design_system;
+mod macros;
 mod short_hash;
 mod update_wallpaper;
 
 pub use components::*;
 pub use deadliner::*;
 pub use design_system::*;
+pub use macros::*;
+use serde::{Deserialize, Serialize};
 pub use short_hash::*;
 pub use update_wallpaper::*;
 
 use chrono::NaiveDateTime;
-use std::env;
 use std::error::Error;
 use std::path::PathBuf;
+use std::{env, fs};
 use std::{fs::File, path};
-use wallpaper::Mode;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SanitizedConf {
     bg_type: BackgroundOptions,
     bg_color: Option<String>,
@@ -25,7 +27,7 @@ pub struct SanitizedConf {
     bg_url: Option<String>,
     bg_location: Option<String>,
 
-    bg_mode: Mode,
+    bg_mode: WallpaperMode,
 
     show_months: bool,
     show_weeks: bool,
@@ -36,10 +38,10 @@ pub struct SanitizedConf {
     font_size: u8,
     font_color: String,
 
-    deadline: NaiveDateTime,
+    deadline_str: String,
 }
 
-fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
+fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if !(conf.show_months || conf.show_weeks || conf.show_days || conf.show_hours)
         || conf.date.is_empty()
         || conf.hours.is_empty()
@@ -49,7 +51,7 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     }
 
     let mut sanitized_conf = SanitizedConf {
-        bg_mode: map_wallpaper_mode_enum(conf.wallpaper_mode),
+        bg_mode: conf.wallpaper_mode,
         bg_color: None,
         bg_color_arr: conf.bg_color,
         bg_url: None,
@@ -67,7 +69,7 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         font_color: String::new(),
 
         // Just a placeholder till we parse the date
-        deadline: NaiveDateTime::from_timestamp(0, 0),
+        deadline_str: String::new(),
     };
 
     let rgb_to_hex = |r, g, b| format!("#{:02X}{:02X}{:02X}", r, g, b);
@@ -100,9 +102,24 @@ fn sanitize_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     let date = NaiveDateTime::parse_from_str(&formatted_date_str, "%Y-%m-%d %I:%M %p");
 
     match date {
-        Ok(result) => sanitized_conf.deadline = result,
+        Ok(_) => sanitized_conf.deadline_str = formatted_date_str,
         Err(_) => return Err(String::from("Invalid date input!")),
     }
+
+    unwrap_or_return!(
+        fs::write(
+            new_path("config.json"),
+            serde_json::to_string_pretty(&sanitized_conf).unwrap(),
+        ),
+        "Couldn't save your configuration to the filesystem!"
+    );
+
+    let cache_conf = get_cache_dir().join("raw_config.json");
+
+    unwrap_or_return!(
+        fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
+        "Couldn't save your configuration to the filesystem!"
+    );
 
     // Here we setup a schedule every "period" to update the wallpaper
     update_wallpaper(sanitized_conf)
@@ -138,19 +155,16 @@ pub fn download_image(url: &str) -> DownloadResult<String> {
     Ok(file_path.to_str().to_owned().ok_or("no file path")?.into())
 }
 
-pub fn map_wallpaper_mode_enum(mode: WallpaperMode) -> Mode {
-    match mode {
-        WallpaperMode::Center => Mode::Center,
-        WallpaperMode::Crop => Mode::Crop,
-        WallpaperMode::Fit => Mode::Fit,
-        WallpaperMode::Span => Mode::Span,
-    }
-}
-
 pub fn new_path(path: &str) -> PathBuf {
     let mut exe_location = env::current_exe().unwrap();
 
     exe_location.pop();
 
     exe_location.join(path)
+}
+
+fn get_cache_dir() -> PathBuf {
+    let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
+
+    cache_dir.join("deadliner")
 }

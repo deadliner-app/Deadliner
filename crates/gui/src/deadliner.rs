@@ -1,7 +1,8 @@
 use crate::{
-    button, draw_line, get_file_name_from_path, is_string_numeric, new_path, render_footer,
-    render_header, render_input, render_input_with_label, render_section, sanitize_inputs,
-    BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, YELLOW,
+    button, draw_line, get_cache_dir, get_file_name_from_path, is_string_numeric, new_path,
+    render_footer, render_header, render_input, render_input_with_label, render_section,
+    save_inputs, BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT,
+    SECONDARY_DARK, YELLOW,
 };
 use eframe::{
     self,
@@ -14,6 +15,7 @@ use eframe::{
     epi::App,
 };
 use image::GenericImageView;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
@@ -21,7 +23,9 @@ use std::{
 };
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use wallpaper::Mode;
 
+#[derive(Serialize, Deserialize)]
 pub struct DeadlinerConf {
     pub background: BackgroundOptions,
     pub wallpaper_mode: WallpaperMode,
@@ -56,20 +60,19 @@ pub struct Deadliner<'a> {
     conf: DeadlinerConf,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone, EnumIter)]
+#[derive(Debug, PartialEq, Copy, Clone, EnumIter, Serialize, Deserialize)]
 pub enum Periods {
     AM,
     PM,
 }
-
-#[derive(Debug, PartialEq, Copy, Clone, EnumIter)]
+#[derive(Debug, PartialEq, Copy, Clone, EnumIter, Serialize, Deserialize)]
 pub enum BackgroundOptions {
     Solid,
     FromDisk,
     FromURL,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, EnumIter)]
+#[derive(PartialEq, Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
 pub enum Font {
     PoppinsBlack,
     PoppinsMedium,
@@ -77,12 +80,23 @@ pub enum Font {
     PoppinsLight,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, EnumIter)]
+#[derive(Debug, PartialEq, Clone, Copy, EnumIter, Serialize, Deserialize)]
 pub enum WallpaperMode {
     Center,
     Crop,
     Fit,
     Span,
+}
+
+impl From<WallpaperMode> for Mode {
+    fn from(mode: WallpaperMode) -> Self {
+        match mode {
+            WallpaperMode::Center => Mode::Center,
+            WallpaperMode::Crop => Mode::Crop,
+            WallpaperMode::Fit => Mode::Fit,
+            WallpaperMode::Span => Mode::Span,
+        }
+    }
 }
 
 impl<'a> App for Deadliner<'a> {
@@ -359,7 +373,7 @@ impl<'a> App for Deadliner<'a> {
                 });
 
                 if button.clicked() {
-                    match sanitize_inputs(&self.conf) {
+                    match save_inputs(&self.conf) {
                         Err(msg) => {
                             self.error_msg = msg;
                             ui.memory().toggle_popup(date_error_popup_id);
@@ -385,7 +399,7 @@ impl<'a> App for Deadliner<'a> {
 
 impl<'a> Deadliner<'a> {
     pub fn new() -> Deadliner<'a> {
-        Deadliner {
+        let default = Deadliner {
             textures: HashMap::new(),
             error_msg: String::new(),
             invalid_bg: false,
@@ -408,6 +422,18 @@ impl<'a> Deadliner<'a> {
                 show_weeks: false,
                 show_months: false,
             },
+        };
+        let cached = get_cache_dir().join("raw_config.json");
+
+        if cached.exists() {
+            let conf_str = fs::read_to_string(cached).unwrap();
+
+            Deadliner {
+                conf: serde_json::from_str(&conf_str).expect("Corrupted Cached JSON Config!"),
+                ..default
+            }
+        } else {
+            default
         }
     }
 

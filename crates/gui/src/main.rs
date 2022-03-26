@@ -1,6 +1,6 @@
 // #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use std::{env, fs};
+use std::fs;
 
 use deadliner_gui::{new_path, Deadliner};
 use eframe::{

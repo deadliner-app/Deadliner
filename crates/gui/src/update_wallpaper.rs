@@ -1,6 +1,6 @@
 use std::fs;
 
-use chrono::Local;
+use chrono::{Local, NaiveDateTime};
 use image::{DynamicImage, Rgb, RgbImage};
 use imageproc::{
     drawing::{draw_filled_rect_mut, Canvas},
@@ -8,11 +8,13 @@ use imageproc::{
 };
 use text_to_png::TextRenderer;
 
-use crate::{download_image, new_path, BackgroundOptions, SanitizedConf};
+use crate::{
+    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, SanitizedConf,
+};
 
 pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
-    let deadline = conf.deadline;
+    let deadline = NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
     let diff = deadline.signed_duration_since(today);
 
     let minutes = diff.num_minutes();
@@ -88,7 +90,7 @@ pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
     match file_path {
         Ok(file_path) => {
             // Sets the wallpaper for the current desktop from a URL.
-            wallpaper::set_mode(conf.bg_mode).unwrap();
+            wallpaper::set_mode(conf.bg_mode.into()).unwrap();
             wallpaper::set_from_path(&file_path).unwrap();
 
             Ok(())
@@ -153,14 +155,10 @@ fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String
 
     image::imageops::overlay(&mut background, &text_image, x, y);
 
-    let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
-    let file_path = cache_dir.join("./deadliner/result.png");
+    let file_path = get_cache_dir().join("result.png");
     let file_path = file_path.to_str().unwrap().to_owned();
 
-    match background.save(&file_path) {
-        Err(_) => return Err(String::from("Couldn't save result.png")),
-        _ => {}
-    }
+    unwrap_or_return!(background.save(&file_path), "Couldn't save result.png");
 
     Ok(file_path)
 }
