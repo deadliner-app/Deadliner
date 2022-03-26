@@ -10,9 +10,10 @@ use text_to_png::TextRenderer;
 
 use crate::{
     download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, SanitizedConf,
+    ScreenDimensions,
 };
 
-pub fn update_wallpaper(conf: SanitizedConf) -> Result<(), String> {
+pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
     let deadline = NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
     let diff = deadline.signed_duration_since(today);
@@ -115,11 +116,13 @@ fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String
     if conf.bg_type == BackgroundOptions::FromDisk {
         background = image::open(conf.bg_location.as_ref().unwrap()).unwrap();
     } else if conf.bg_type == BackgroundOptions::Solid {
-        let mut image = RgbImage::new(1920, 1080);
+        let ScreenDimensions { width, height } = conf.screen_dimensions;
+
+        let mut image = RgbImage::new(width, height);
 
         draw_filled_rect_mut(
             &mut image,
-            Rect::at(0, 0).of_size(1920, 1080),
+            Rect::at(0, 0).of_size(width, height),
             Rgb(conf.bg_color_arr),
         );
 

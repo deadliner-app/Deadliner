@@ -27,6 +27,8 @@ use wallpaper::Mode;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DeadlinerConf {
+    pub screen_dimensions: ScreenDimensions,
+
     pub background: BackgroundOptions,
     pub wallpaper_mode: WallpaperMode,
 
@@ -47,6 +49,12 @@ pub struct DeadlinerConf {
     pub hours: String,
     pub minutes: String,
     pub period: Periods,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub struct ScreenDimensions {
+    pub width: u32,
+    pub height: u32,
 }
 
 pub struct Deadliner<'a> {
@@ -397,12 +405,16 @@ impl<'a> App for Deadliner<'a> {
 }
 
 impl<'a> Deadliner<'a> {
-    pub fn new() -> Deadliner<'a> {
+    pub fn new(screen_width: u32, screen_height: u32) -> Deadliner<'a> {
         let default = Deadliner {
             textures: HashMap::new(),
             error_msg: String::new(),
             invalid_bg: false,
             conf: DeadlinerConf {
+                screen_dimensions: ScreenDimensions {
+                    width: screen_width,
+                    height: screen_height,
+                },
                 background: BackgroundOptions::Solid,
                 bg_color: [0, 0, 0],
                 bg_location: String::new(),

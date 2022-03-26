@@ -13,32 +13,35 @@ use serde::{Deserialize, Serialize};
 pub use short_hash::*;
 pub use update_wallpaper::*;
 
-use chrono::NaiveDateTime;
+use chrono::{Local, NaiveDateTime};
 use std::error::Error;
 use std::path::PathBuf;
-use std::{env, fs};
+use std::process::Command;
+use std::{env, fs, process};
 use std::{fs::File, path};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SanitizedConf {
-    bg_type: BackgroundOptions,
-    bg_color: Option<String>,
-    bg_color_arr: [u8; 3],
-    bg_url: Option<String>,
-    bg_location: Option<String>,
+    pub screen_dimensions: ScreenDimensions,
 
-    bg_mode: WallpaperMode,
+    pub bg_type: BackgroundOptions,
+    pub bg_color: Option<String>,
+    pub bg_color_arr: [u8; 3],
+    pub bg_url: Option<String>,
+    pub bg_location: Option<String>,
 
-    show_months: bool,
-    show_weeks: bool,
-    show_days: bool,
-    show_hours: bool,
+    pub bg_mode: WallpaperMode,
 
-    font: Font,
-    font_size: u8,
-    font_color: String,
+    pub show_months: bool,
+    pub show_weeks: bool,
+    pub show_days: bool,
+    pub show_hours: bool,
 
-    deadline_str: String,
+    pub font: Font,
+    pub font_size: u8,
+    pub font_color: String,
+
+    pub deadline_str: String,
 }
 
 fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
@@ -51,6 +54,7 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     }
 
     let mut sanitized_conf = SanitizedConf {
+        screen_dimensions: conf.screen_dimensions.clone(),
         bg_mode: conf.wallpaper_mode,
         bg_color: None,
         bg_color_arr: conf.bg_color,
@@ -106,6 +110,21 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         Err(_) => return Err(String::from("Invalid date input!")),
     }
 
+    // Check if deadline was in the future
+    let today = Local::now().naive_local();
+    let deadline =
+        NaiveDateTime::parse_from_str(&sanitized_conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
+    let diff = deadline.signed_duration_since(today);
+
+    let minutes = diff.num_minutes();
+    if minutes <= 0 {
+        return Err(String::from("Deadline must be a future date!"));
+    }
+
+    // Run update_wallpaper once to check for any potential errors before saving this conf.
+    update_wallpaper(&sanitized_conf)?;
+
+    // If we managed to update the wallpaper successfully, then save the current conf.
     // Write the config.json next to the binaries instead of in the cache dir cause this is a very
     // important file. And it would be bad if it was accidently deleted when the cache was cleared
     unwrap_or_return!(
@@ -123,8 +142,17 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         "Couldn't save your configuration to the filesystem!"
     );
 
-    // Here we setup a schedule every "period" to update the wallpaper
-    update_wallpaper(sanitized_conf)
+    // !Here we setup a schedule to update the wallpaper
+    let schedular_file = format!("bg-job.{}", &get_current_file_ext());
+    unwrap_or_return!(
+        Command::new(new_path(&schedular_file))
+            .arg("-c")
+            .arg("echo hello")
+            .spawn(),
+        "Couldn't run the schedular binary!"
+    );
+
+    process::exit(0);
 }
 
 pub fn is_string_numeric(word: &str) -> bool {
@@ -169,4 +197,15 @@ pub fn get_cache_dir() -> PathBuf {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
 
     cache_dir.join("deadliner")
+}
+
+pub fn get_current_file_ext() -> String {
+    std::env::current_exe()
+        .unwrap()
+        .as_os_str()
+        .to_str()
+        .unwrap()
+        .split("deadliner.")
+        .collect::<Vec<&str>>()[1]
+        .to_string()
 }

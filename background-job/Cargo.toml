@@ -8,6 +8,14 @@ edition = "2021"
 [dependencies]
 deadliner_gui = { path = "../gui" }
 serde_json = "1.0"
+auto-launch = "0.2.0"
+chrono = "0.4.19"
+wallpaper = { version = "3", features = ["from_url"] }
+image = "0.23.14"
+imageproc = "0.22.0"
+text-to-png = "0.2.0"
+tokio-cron-scheduler = "0.5.0"
+tokio = { version = "1.17.0", features = ["full"] }
 
 [[bin]]
 name = "bg-job"

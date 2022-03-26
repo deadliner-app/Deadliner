@@ -11,7 +11,7 @@ use winit::{
     dpi::PhysicalSize,
     event_loop::EventLoop,
     platform::windows::WindowBuilderExtWindows,
-    window::{Icon, WindowBuilder},
+    window::{Icon, Window, WindowBuilder},
 };
 
 fn main() {
@@ -23,26 +23,9 @@ fn main() {
         fs::create_dir(deadliner_cache).unwrap();
     }
 
-    let app = Deadliner::new();
-
-    let icon = image::open(new_path("assets/icon.png"))
-        .expect("Failed to open icon path")
-        .to_rgba8();
-
-    let (icon_width, icon_height) = icon.dimensions();
-
     // Get the primary screen dimensions
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .with_window_icon(Some(
-            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
-        ))
-        .with_taskbar_icon(Some(
-            Icon::from_rgba(icon.into_raw(), icon_width, icon_height).unwrap(),
-        ))
-        .with_visible(false)
-        .build(&event_loop)
-        .unwrap();
+    let window = build_window(event_loop);
 
     let PhysicalSize { width, height } = window.primary_monitor().unwrap().size();
 
@@ -61,5 +44,47 @@ fn main() {
         ..Default::default()
     };
 
+    let app = Deadliner::new(width, height);
+
     run_native(Box::new(app), win_options);
+}
+
+fn build_window(event_loop: EventLoop<()>) -> Window {
+    let icon = image::open(new_path("assets/icon.png"))
+        .expect("Failed to open icon path")
+        .to_rgba8();
+
+    let (icon_width, icon_height) = icon.dimensions();
+
+    #[cfg(target_os = "windows")]
+    let window = WindowBuilder::new()
+        .with_window_icon(Some(
+            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_taskbar_icon(Some(
+            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_visible(false)
+        .build(&event_loop)
+        .unwrap();
+
+    #[cfg(target_os = "linux")]
+    let window = WindowBuilder::new()
+        .with_window_icon(Some(
+            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_visible(false)
+        .build(&event_loop)
+        .unwrap();
+
+    #[cfg(target_os = "macos")]
+    let window = WindowBuilder::new()
+        .with_window_icon(Some(
+            Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
+        ))
+        .with_visible(false)
+        .build(&event_loop)
+        .unwrap();
+
+    window
 }

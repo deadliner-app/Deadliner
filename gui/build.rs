@@ -33,10 +33,9 @@ fn main() {
     // Request the output directory
     let profile = env::var("PROFILE").unwrap();
 
-    let out = env::current_dir().unwrap().join(PathBuf::from(format!(
-        "../../target/{}/{}",
-        profile, COPY_DIR
-    )));
+    let out = env::current_dir()
+        .unwrap()
+        .join(PathBuf::from(format!("../target/{}/{}", profile, COPY_DIR)));
 
     // If it is already in the output directory, delete it and start over
     if out.exists() {
