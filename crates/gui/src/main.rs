@@ -36,9 +36,6 @@ fn main() {
         .with_window_icon(Some(
             Icon::from_rgba(icon.clone().into_raw(), icon_width, icon_height).unwrap(),
         ))
-        .with_taskbar_icon(Some(
-            Icon::from_rgba(icon.into_raw(), icon_width, icon_height).unwrap(),
-        ))
         .with_visible(false)
         .build(&event_loop)
         .unwrap();
