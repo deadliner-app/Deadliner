@@ -25,7 +25,7 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use wallpaper::Mode;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeadlinerConf {
     pub background: BackgroundOptions,
     pub wallpaper_mode: WallpaperMode,

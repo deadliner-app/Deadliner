@@ -669,6 +669,7 @@ name = "deadliner_background_job"
 version = "0.1.0"
 dependencies = [
  "deadliner_gui",
+ "serde_json",
 ]
 
 [[package]]

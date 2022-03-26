@@ -106,6 +106,8 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         Err(_) => return Err(String::from("Invalid date input!")),
     }
 
+    // Write the config.json next to the binaries instead of in the cache dir cause this is a very
+    // important file. And it would be bad if it was accidently deleted when the cache was cleared
     unwrap_or_return!(
         fs::write(
             new_path("config.json"),
@@ -163,7 +165,7 @@ pub fn new_path(path: &str) -> PathBuf {
     exe_location.join(path)
 }
 
-fn get_cache_dir() -> PathBuf {
+pub fn get_cache_dir() -> PathBuf {
     let cache_dir = dirs::cache_dir().ok_or("no cache dir").unwrap();
 
     cache_dir.join("deadliner")
