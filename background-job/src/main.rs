@@ -1,12 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use deadliner_background_job::register_auto_launch;
 use deadliner_gui::{new_path, update_wallpaper, SanitizedConf};
+use deadliner_schedular::{bg_system_tray, register_auto_launch};
 use std::{env, fs};
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 #[tokio::main]
 async fn main() {
+    bg_system_tray();
     register_auto_launch();
 
     let conf_str =

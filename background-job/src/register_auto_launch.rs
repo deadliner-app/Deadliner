@@ -3,7 +3,7 @@ use std::env;
 
 #[cfg(target_os = "windows")]
 pub fn register_auto_launch() {
-    let app_name = "bg-job";
+    let app_name = "deadliner-schedular";
     let app_path = env::current_exe().unwrap();
     let app_path = app_path.to_str().unwrap();
 
@@ -17,7 +17,7 @@ pub fn register_auto_launch() {
 
 #[cfg(target_os = "macos")]
 pub fn register_auto_launch() {
-    let app_name = "bg-job";
+    let app_name = "deadliner-schedular";
     let app_path = env::current_exe().unwrap();
     let app_path = app_path.to_str().unwrap();
     let auto = AutoLaunch::new(app_name, app_path, false, false);
@@ -30,7 +30,7 @@ pub fn register_auto_launch() {
 
 #[cfg(target_os = "linux")]
 pub fn register_auto_launch() {
-    let app_name = "bg-job";
+    let app_name = "deadliner-schedular";
     let app_path = env::current_exe().unwrap();
     let app_path = app_path.to_str().unwrap();
 

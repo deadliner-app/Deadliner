@@ -144,11 +144,10 @@ fn save_inputs(conf: &DeadlinerConf, exit: bool) -> Result<(), String> {
         );
 
         // !Here we setup a schedule to update the wallpaper
-        let schedular_file = format!("bg-job.{}", &get_current_file_ext());
+        let schedular_exec = format!("deadliner-schedular.{}", &get_current_file_ext());
         unwrap_or_return!(
-            Command::new(new_path(&schedular_file))
-                .arg("-c")
-                .arg("echo hello")
+            Command::new(new_path(&schedular_exec))
+                .arg("skip-update-on-launch")
                 .spawn(),
             "Couldn't run the schedular binary!"
         );
@@ -204,12 +203,13 @@ pub fn get_cache_dir() -> PathBuf {
 }
 
 pub fn get_current_file_ext() -> String {
-    std::env::current_exe()
-        .unwrap()
+    let curr_exe = std::env::current_exe().unwrap();
+    let splitted_by_dots = curr_exe
         .as_os_str()
         .to_str()
         .unwrap()
-        .split("deadliner.")
-        .collect::<Vec<&str>>()[1]
-        .to_string()
+        .split(".")
+        .collect::<Vec<&str>>();
+
+    splitted_by_dots[splitted_by_dots.len() - 1].to_string()
 }
