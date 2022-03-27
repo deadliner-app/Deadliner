@@ -1,6 +1,6 @@
 <h1 align="center">Deadliner (Work In Progress)
 <div align="center">
-<img src="https://github.com/YassinEldeeb/deadliner/actions/workflows/CI.yml/badge.svg"/>
+<img src="https://github.com/YassinEldeeb/deadliner/actions/workflows/Tests.yml/badge.svg"/>
 <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"/>
 <img src="https://img.shields.io/badge/license-MIT-blue"/>
 </div>
