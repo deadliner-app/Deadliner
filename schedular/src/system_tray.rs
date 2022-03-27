@@ -24,22 +24,22 @@ pub fn bg_system_tray() {
 
     // add quit button
     let reset_element = tray_menu.add_item(MenuItemAttributes::new("Reset Deadline"));
-    let mut show_gui = tray_menu.add_item(MenuItemAttributes::new("Show/Hide Window"));
+    let show_gui = tray_menu.add_item(MenuItemAttributes::new("Show/Hide Window"));
     let quit_element = tray_menu.add_item(MenuItemAttributes::new("Quit Program"));
 
     // Windows require Vec<u8> ICO file
     #[cfg(target_os = "windows")]
-    let icon = include_bytes!("../assets/icon.ico").to_vec();
+    let icon = include_bytes!("../icons/icon.ico").to_vec();
     // macOS require Vec<u8> PNG file
     #[cfg(target_os = "macos")]
-    let icon = include_bytes!("../assets/icon.png").to_vec();
+    let icon = include_bytes!("../icons/icon.png").to_vec();
     // Linux require Pathbuf to PNG file
     #[cfg(target_os = "linux")]
-    let icon = Path::new(env!("CARGO_MANIFEST_DIR")).join("../assets/icon.png");
+    let icon = Path::new(env!("CARGO_MANIFEST_DIR")).join("../icons/icon.png");
 
     // Windows require Vec<u8> ICO file
     #[cfg(target_os = "windows")]
-    let new_icon = include_bytes!("../assets/icon.png").to_vec();
+    let new_icon = include_bytes!("../icons/icon.png").to_vec();
     // macOS require Vec<u8> PNG file
     #[cfg(target_os = "macos")]
     let new_icon = include_bytes!("icon_dark.png").to_vec();

@@ -1,15 +1,16 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+mod macros;
+mod register_auto_launch;
+mod system_tray;
+
+use std::{env, fs};
 
 use deadliner_gui::{new_path, update_wallpaper, SanitizedConf};
-use deadliner_schedular::{bg_system_tray, register_auto_launch};
-use std::{env, fs};
+pub use macros::*;
+pub use register_auto_launch::*;
+pub use system_tray::*;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
-#[tokio::main]
-async fn main() {
-    bg_system_tray();
-    register_auto_launch();
-
+pub fn start_schedular() -> JobScheduler {
     let conf_str =
         fs::read_to_string(new_path("config.json")).expect("Can't read Config JSON file!");
 
@@ -41,7 +42,9 @@ async fn main() {
         sched.add(instantiate_job("* 0 0 1 * * *", conf)).unwrap();
     }
 
-    sched.start().await;
+    sched.start();
+
+    sched
 }
 
 fn instantiate_job<'a>(cron: &str, conf: SanitizedConf) -> Job {
