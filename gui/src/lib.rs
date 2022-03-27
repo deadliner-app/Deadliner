@@ -16,8 +16,8 @@ pub use update_wallpaper::*;
 use chrono::{Local, NaiveDateTime};
 use std::error::Error;
 use std::path::PathBuf;
-use std::process::Command;
-use std::{env, fs, process};
+use std::process::{self, Command};
+use std::{env, fs};
 use std::{fs::File, path};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,7 +44,7 @@ pub struct SanitizedConf {
     pub deadline_str: String,
 }
 
-fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
+fn save_inputs(conf: &DeadlinerConf, exit: bool) -> Result<(), String> {
     if !(conf.show_months || conf.show_weeks || conf.show_days || conf.show_hours)
         || conf.date.is_empty()
         || conf.hours.is_empty()
@@ -124,35 +124,39 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     // Run update_wallpaper once to check for any potential errors before saving this conf.
     update_wallpaper(&sanitized_conf)?;
 
-    // If we managed to update the wallpaper successfully, then save the current conf.
-    // Write the config.json next to the binaries instead of in the cache dir cause this is a very
-    // important file. And it would be bad if it was accidently deleted when the cache was cleared
-    unwrap_or_return!(
-        fs::write(
-            new_path("config.json"),
-            serde_json::to_string_pretty(&sanitized_conf).unwrap(),
-        ),
-        "Couldn't save your configuration to the filesystem!"
-    );
+    if exit {
+        // If we managed to update the wallpaper successfully, then save the current conf.
+        // Write the config.json next to the binaries instead of in the cache dir cause this is a very
+        // important file. And it would be bad if it was accidently deleted when the cache was cleared
+        unwrap_or_return!(
+            fs::write(
+                new_path("config.json"),
+                serde_json::to_string_pretty(&sanitized_conf).unwrap(),
+            ),
+            "Couldn't save your configuration to the filesystem!"
+        );
 
-    let cache_conf = get_cache_dir().join("raw_config.json");
+        let cache_conf = get_cache_dir().join("raw_config.json");
 
-    unwrap_or_return!(
-        fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
-        "Couldn't save your configuration to the filesystem!"
-    );
+        unwrap_or_return!(
+            fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
+            "Couldn't save your configuration to the filesystem!"
+        );
 
-    // !Here we setup a schedule to update the wallpaper
-    let schedular_file = format!("bg-job.{}", &get_current_file_ext());
-    unwrap_or_return!(
-        Command::new(new_path(&schedular_file))
-            .arg("-c")
-            .arg("echo hello")
-            .spawn(),
-        "Couldn't run the schedular binary!"
-    );
+        // !Here we setup a schedule to update the wallpaper
+        let schedular_file = format!("bg-job.{}", &get_current_file_ext());
+        unwrap_or_return!(
+            Command::new(new_path(&schedular_file))
+                .arg("-c")
+                .arg("echo hello")
+                .spawn(),
+            "Couldn't run the schedular binary!"
+        );
 
-    process::exit(0);
+        process::exit(0);
+    }
+
+    Ok(())
 }
 
 pub fn is_string_numeric(word: &str) -> bool {

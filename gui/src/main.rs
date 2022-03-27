@@ -32,7 +32,7 @@ fn main() {
 
     // Set the initial window position at the very bottom right
     let app_width = 400.;
-    let app_height = 630.;
+    let app_height = 640.;
     let taskbar_approx_height = 65.;
     let padding = 15.;
 

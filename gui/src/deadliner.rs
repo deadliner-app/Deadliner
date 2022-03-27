@@ -1,8 +1,8 @@
 use crate::{
-    button, draw_line, get_cache_dir, get_file_name_from_path, is_string_numeric, new_path,
-    render_footer, render_header, render_input, render_input_with_label, render_section,
-    save_inputs, BACKGROUND, GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT,
-    SECONDARY_DARK,
+    button, draw_line, get_cache_dir, get_current_file_ext, get_file_name_from_path,
+    is_string_numeric, new_path, render_footer, render_header, render_input,
+    render_input_with_label, render_section, save_inputs, unwrap_or_return, BACKGROUND, BLACK,
+    GREY_WHITE, MARGIN, PADDING, SECONDARY, SECONDARY_BRIGHT, SECONDARY_DARK, WHITE, YELLOW,
 };
 use eframe::{
     self,
@@ -20,6 +20,7 @@ use std::{
     collections::{BTreeMap, HashMap},
     fmt::Debug,
     fs,
+    process::Command,
 };
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -368,26 +369,36 @@ impl<'a> App for Deadliner<'a> {
                         });
                 });
 
-                ui.add_space(20.);
+                ui.add_space(30.);
 
-                let button = button("Start!");
-                let button = ui.add(button);
+                ui.horizontal(|ui| {
+                    let save_button = button("Save", BLACK, YELLOW, 600, 32.);
+                    let preview_button = button("Preview", WHITE, SECONDARY_DARK, 400, 31.);
 
-                // Setup error popup
-                egui::popup::popup_below_widget(ui, date_error_popup_id, &button, |ui| {
-                    ui.set_min_width(200.0); // if you want to control the size
-                    ui.label(&self.error_msg);
-                });
+                    let save_button = ui.add(save_button);
+                    ui.add_space(PADDING / 3.);
+                    let preview_button = ui.add(preview_button);
 
-                if button.clicked() {
-                    match save_inputs(&self.conf) {
-                        Err(msg) => {
-                            self.error_msg = msg;
-                            ui.memory().toggle_popup(date_error_popup_id);
+                    // Setup error popups
+                    egui::popup::popup_below_widget(ui, date_error_popup_id, &save_button, |ui| {
+                        ui.set_min_width(200.0); // if you want to control the size
+                        ui.label(&self.error_msg);
+                    });
+
+                    let save_clicked = save_button.clicked();
+                    let preview_clicked = preview_button.clicked();
+
+                    if save_clicked || preview_clicked {
+                        // Pass true to exit only if the user hit save
+                        match save_inputs(&self.conf, save_clicked) {
+                            Err(msg) => {
+                                self.error_msg = msg;
+                                ui.memory().toggle_popup(date_error_popup_id);
+                            }
+                            _ => (),
                         }
-                        _ => (),
-                    }
-                };
+                    };
+                });
             });
 
             let github = self
@@ -436,10 +447,14 @@ impl<'a> Deadliner<'a> {
         let cached = get_cache_dir().join("raw_config.json");
 
         if cached.exists() {
-            let conf_str = fs::read_to_string(cached).unwrap();
+            let conf_str = fs::read_to_string(&cached).unwrap();
 
             Deadliner {
-                conf: serde_json::from_str(&conf_str).expect("Corrupted Cached JSON Config!"),
+                conf: serde_json::from_str(&conf_str).unwrap_or_else(|_| {
+                    fs::remove_file(&cached).unwrap();
+
+                    default.conf
+                }),
                 ..default
             }
         } else {
