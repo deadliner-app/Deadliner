@@ -1,21 +1,24 @@
+use std::sync::{Arc, Mutex};
+use std::thread::JoinHandle;
+
 // System tray is supported and availabled only if `tray` feature is enabled.
 // Platform: Windows, Linux and macOS.
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 // #[cfg(feature = "tray")]
-pub fn bg_system_tray() {
+pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
     use deadliner_gui::{get_current_file_ext, new_path};
     #[cfg(target_os = "linux")]
     use std::path::Path;
     use std::{
-        fs,
-        process::{self, Child, Command},
+        process::{Child, Command},
+        thread::JoinHandle,
     };
     #[cfg(target_os = "macos")]
     use tao::platform::macos::{CustomMenuItemExtMacOS, NativeImage, SystemTrayBuilderExtMacOS};
     use tao::{
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
-        menu::{ContextMenu as Menu, CustomMenuItem, MenuItemAttributes, MenuType},
+        menu::{ContextMenu as Menu, MenuItemAttributes, MenuType},
         system_tray::SystemTrayBuilder,
     };
 
@@ -62,6 +65,14 @@ pub fn bg_system_tray() {
 
     event_loop.run(move |event, event_loop, control_flow| {
         *control_flow = ControlFlow::Wait;
+
+        // Acquire the lock to check if an exit signal is sent.
+        let exit_lock = exit.try_lock();
+        if let Ok(value) = exit_lock {
+            if *value == true {
+                *control_flow = ControlFlow::Exit;
+            }
+        }
 
         let open_gui = |icon_click: bool, gui_handler: &mut Option<Child>| {
             let is_gui_running = if gui_handler.is_some() {
@@ -112,10 +123,10 @@ pub fn bg_system_tray() {
             } => {
                 // click on `quit` item
                 if menu_id == quit_element.clone().id() {
-                    // tell our app to close at the end of the loop.
                     if gui_handler.is_some() {
                         gui_handler.as_mut().unwrap().kill();
                     }
+                    // tell our app to close at the end of the loop.
                     *control_flow = ControlFlow::Exit;
                 }
 

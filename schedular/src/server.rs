@@ -3,10 +3,12 @@ use std::{
     fs,
     io::prelude::*,
     net::{TcpListener, TcpStream},
-    process,
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
 };
 
-pub fn run_server() {
+pub fn run_server(exit: Arc<Mutex<bool>>) {
     let port = fs::read_to_string(new_path("port.txt")).unwrap();
     let addr = format!("127.0.0.1:{}", port);
 
@@ -15,11 +17,15 @@ pub fn run_server() {
     for stream in listener.incoming() {
         let stream = stream.expect("Couldn't establish a socket connecton!");
 
-        handle_connection(stream);
+        // Pass the sender here to trigger shutdow
+        let exit_tcp_listener = handle_connection(stream, Arc::clone(&exit));
+        if exit_tcp_listener {
+            break;
+        }
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(mut stream: TcpStream, exit: Arc<Mutex<bool>>) -> bool {
     let mut buffer = [0; 1024];
     stream
         .read(&mut buffer)
@@ -37,9 +43,13 @@ fn handle_connection(mut stream: TcpStream) {
         .expect("Couldn't write all bytes to the stream!");
 
     if req.is_some() && req.unwrap().uri == "/shutdown" {
-        // Handle reschedule
-        process::exit(0);
+        let mut exit = exit.lock().unwrap();
+        *exit = true;
+
+        return true;
     }
+
+    false
 }
 
 /// `Request` is a struct that takes the `buffer` from `TcpStream`

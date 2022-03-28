@@ -369,15 +369,12 @@ impl<'a> App for Deadliner<'a> {
                         });
                 });
 
-                ui.add_space(30.);
+                ui.add_space(20.);
 
                 ui.horizontal(|ui| {
-                    let start_button = button("Start!", BLACK, YELLOW, 600, 32.);
-                    let preview_button = button("Preview", WHITE, SECONDARY_DARK, 400, 31.);
+                    let start_button = button("Save!", BLACK, YELLOW, 600, 32.);
 
                     let start_button = ui.add(start_button);
-                    ui.add_space(PADDING / 3.);
-                    let preview_button = ui.add(preview_button);
 
                     // Setup error popups
                     egui::popup::popup_below_widget(ui, date_error_popup_id, &start_button, |ui| {
@@ -386,11 +383,10 @@ impl<'a> App for Deadliner<'a> {
                     });
 
                     let start_clicked = start_button.clicked();
-                    let preview_clicked = preview_button.clicked();
 
-                    if start_clicked || preview_clicked {
+                    if start_clicked {
                         // Pass true to exit only if the user hit save
-                        match save_inputs(&self.conf, start_clicked) {
+                        match save_inputs(&self.conf) {
                             Err(msg) => {
                                 self.error_msg = msg;
                                 ui.memory().toggle_popup(date_error_popup_id);

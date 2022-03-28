@@ -18,7 +18,7 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::process::{self, Command};
 use std::time::{Duration, Instant};
-use std::{env, fs};
+use std::{env, fs, thread};
 use std::{fs::File, path};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,7 +45,7 @@ pub struct SanitizedConf {
     pub deadline_str: String,
 }
 
-fn save_inputs(conf: &DeadlinerConf, exit: bool) -> Result<(), String> {
+fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if !(conf.show_months || conf.show_weeks || conf.show_days || conf.show_hours)
         || conf.date.is_empty()
         || conf.hours.is_empty()
@@ -125,54 +125,53 @@ fn save_inputs(conf: &DeadlinerConf, exit: bool) -> Result<(), String> {
     // Run update_wallpaper once to check for any potential errors before saving this conf.
     update_wallpaper(&sanitized_conf)?;
 
-    if exit {
-        // If we managed to update the wallpaper successfully, then save the current conf.
-        // Write the config.json next to the binaries instead of in the cache dir cause this is a very
-        // important file. And it would be bad if it was accidently deleted when the cache was cleared
-        unwrap_or_return!(
-            fs::write(
-                new_path("config.json"),
-                serde_json::to_string_pretty(&sanitized_conf).unwrap(),
-            ),
-            "Couldn't save your configuration to the filesystem!"
-        );
+    // If we managed to update the wallpaper successfully, then save the current conf.
+    // Write the config.json next to the binaries instead of in the cache dir cause this is a very
+    // important file. And it would be bad if it was accidently deleted when the cache was cleared
+    unwrap_or_return!(
+        fs::write(
+            new_path("config.json"),
+            serde_json::to_string_pretty(&sanitized_conf).unwrap(),
+        ),
+        "Couldn't save your configuration to the filesystem!"
+    );
 
-        let cache_conf = get_cache_dir().join("raw_config.json");
+    let cache_conf = get_cache_dir().join("raw_config.json");
 
-        unwrap_or_return!(
-            fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
-            "Couldn't save your configuration to the filesystem!"
-        );
+    unwrap_or_return!(
+        fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
+        "Couldn't save your configuration to the filesystem!"
+    );
 
-        // Check if there's an already running instance of schedular
-        let port = fs::read_to_string(new_path("port.txt")).unwrap();
-        let server_url = format!("http://127.0.0.1:{}", port);
+    // Check if there's an already running instance of schedular
+    let port = fs::read_to_string(new_path("port.txt")).unwrap();
+    let server_url = format!("http://127.0.0.1:{}", port);
 
-        let res = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_millis(50))
-            .build()
-            .unwrap()
-            .get(&server_url)
-            .send();
+    let res = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_millis(50))
+        .build()
+        .unwrap()
+        .get(&server_url)
+        .send();
 
-        let is_schedular_running = res.is_ok() && res.unwrap().status().as_u16() == 200;
+    let is_schedular_running = res.is_ok() && res.unwrap().status().as_u16() == 200;
 
-        if is_schedular_running {
-            // Send a request to shutdown the running schedular
-            reqwest::blocking::get(server_url + "/shutdown").unwrap();
-        }
+    if is_schedular_running {
+        // Send a request to shutdown the running schedular
+        reqwest::blocking::get(server_url + "/shutdown").unwrap();
 
-        // !Here we setup a schedule to update the wallpaper
-        let schedular_exec = format!("deadliner-schedular.{}", &get_current_file_ext());
-        unwrap_or_return!(
-            Command::new(new_path(&schedular_exec))
-                .arg("skip-update-on-launch")
-                .spawn(),
-            "Couldn't run the schedular binary!"
-        );
-
-        process::exit(0);
+        // Give the schedular a bit of time till it shutdown
+        thread::sleep(Duration::from_millis(50));
     }
+
+    // !Here we setup a schedule to update the wallpaper
+    let schedular_exec = format!("deadliner-schedular.{}", &get_current_file_ext());
+    unwrap_or_return!(
+        Command::new(new_path(&schedular_exec))
+            .arg("skip-update-on-launch")
+            .spawn(),
+        "Couldn't run the schedular binary!"
+    );
 
     Ok(())
 }

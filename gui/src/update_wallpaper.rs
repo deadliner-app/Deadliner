@@ -1,5 +1,9 @@
 use std::fs;
 
+use crate::{
+    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, SanitizedConf,
+    ScreenDimensions,
+};
 use chrono::{Local, NaiveDateTime};
 use image::{DynamicImage, Rgb, RgbImage};
 use imageproc::{
@@ -7,11 +11,6 @@ use imageproc::{
     rect::Rect,
 };
 use text_to_png::TextRenderer;
-
-use crate::{
-    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, SanitizedConf,
-    ScreenDimensions,
-};
 
 pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
     let today = Local::now().naive_local();
@@ -54,29 +53,37 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
 
     let mut deadline_str = String::new();
 
-    if conf.show_months && months != 0 {
-        deadline_str.push_str(&format!("{} Months", months));
+    let show_months = conf.show_months && months != 0;
+    let show_weeks = conf.show_weeks && weeks != 0;
+    let show_days = conf.show_days && days != 0;
+    let show_hours = conf.show_hours && hours != 0;
+
+    let format_time_unit =
+        |time_unit, num| format!("{} {}{}", num, time_unit, if num > 1 { "s" } else { "" });
+
+    if show_months {
+        deadline_str.push_str(&format_time_unit("Month", months));
     }
 
-    if conf.show_weeks && weeks != 0 {
-        if conf.show_months {
+    if show_weeks {
+        if show_months {
             deadline_str.push_str(", ");
         }
-        deadline_str.push_str(&format!("{} Weeks", weeks));
+        deadline_str.push_str(&format_time_unit("Week", weeks));
     }
 
-    if conf.show_days && days != 0 {
-        if conf.show_months || conf.show_weeks {
+    if show_days {
+        if show_months || show_weeks {
             deadline_str.push_str(", ");
         }
-        deadline_str.push_str(&format!("{} Days", days));
+        deadline_str.push_str(&format_time_unit("Day", days));
     }
 
-    if conf.show_hours && hours != 0 {
-        if conf.show_months || conf.show_weeks || conf.show_days {
+    if show_hours {
+        if show_months || show_weeks || show_days {
             deadline_str.push_str(", ");
         }
-        deadline_str.push_str(&format!("{} Hours", hours));
+        deadline_str.push_str(&format_time_unit("Hour", hours));
     }
 
     deadline_str.push_str(" Left.");
