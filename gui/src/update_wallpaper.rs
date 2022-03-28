@@ -17,13 +17,12 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
     let deadline = NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
     let diff = deadline.signed_duration_since(today);
 
-    let minutes = diff.num_minutes();
-
     let remaining_days = diff.num_days();
     let months = remaining_days / 30;
     let mut weeks = remaining_days / 7;
     let mut days = remaining_days;
     let mut hours = diff.num_hours();
+    let minutes = diff.num_minutes();
 
     if conf.show_months {
         // Month = 30 days - Month = 4 Weeks = 28 days
@@ -86,11 +85,12 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
         deadline_str.push_str(&format_time_unit("Hour", hours));
     }
 
-    deadline_str.push_str(" Left.");
-
-    if minutes <= 0 {
-        return Err(String::from("Deadline must be a future date!"));
+    // If the deadline is close to its ending, show minutes left.
+    if deadline_str.is_empty() && conf.show_hours {
+        deadline_str.push_str(&format_time_unit("Minute", minutes));
     }
+
+    deadline_str.push_str(" Left.");
 
     // TODO: Prevent blocking the main thread cause it freezes the UI.
     let file_path = generate_wallpaper(&deadline_str, &conf);

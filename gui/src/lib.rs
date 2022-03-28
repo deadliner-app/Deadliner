@@ -21,7 +21,7 @@ use std::time::{Duration, Instant};
 use std::{env, fs, thread};
 use std::{fs::File, path};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SanitizedConf {
     pub screen_dimensions: ScreenDimensions,
 
