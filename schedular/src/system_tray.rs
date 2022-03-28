@@ -6,7 +6,10 @@ pub fn bg_system_tray() {
     use deadliner_gui::{get_current_file_ext, new_path};
     #[cfg(target_os = "linux")]
     use std::path::Path;
-    use std::process::{self, Child, Command};
+    use std::{
+        fs,
+        process::{self, Child, Command},
+    };
     #[cfg(target_os = "macos")]
     use tao::platform::macos::{CustomMenuItemExtMacOS, NativeImage, SystemTrayBuilderExtMacOS};
     use tao::{
@@ -22,9 +25,7 @@ pub fn bg_system_tray() {
 
     let mut gui_handler: Option<Child> = None;
 
-    // add quit button
-    let reset_element = tray_menu.add_item(MenuItemAttributes::new("Reset Deadline"));
-    let show_gui = tray_menu.add_item(MenuItemAttributes::new("Show/Hide Window"));
+    let show_gui = tray_menu.add_item(MenuItemAttributes::new("Open/Close Window"));
     let quit_element = tray_menu.add_item(MenuItemAttributes::new("Quit Program"));
 
     // Windows require Vec<u8> ICO file
@@ -119,11 +120,8 @@ pub fn bg_system_tray() {
                 }
 
                 if menu_id == show_gui.clone().id() {
+                    // Pass an argument to tell it to only style
                     open_gui(false, &mut gui_handler)
-                }
-
-                if menu_id == reset_element.clone().id() {
-                    // Reset the deadline
                 }
             }
             _ => (),

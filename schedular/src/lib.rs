@@ -1,5 +1,6 @@
 mod macros;
 mod register_auto_launch;
+mod server;
 mod system_tray;
 
 use std::{env, fs};
@@ -7,6 +8,7 @@ use std::{env, fs};
 use deadliner_gui::{new_path, update_wallpaper, SanitizedConf};
 pub use macros::*;
 pub use register_auto_launch::*;
+pub use server::*;
 pub use system_tray::*;
 use tokio_cron_scheduler::{Job, JobScheduler};
 

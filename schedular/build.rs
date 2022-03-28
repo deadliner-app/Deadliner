@@ -1,5 +1,6 @@
 use std::{
-    env, fs,
+    env,
+    fs::{self, copy},
     path::{Path, PathBuf},
 };
 
@@ -47,4 +48,5 @@ fn main() {
 
     // Copy the directory
     copy_dir(COPY_DIR, &out);
+    copy("port.txt", &out.join("../port.txt")).unwrap();
 }

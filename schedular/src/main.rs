@@ -2,11 +2,15 @@
 
 use std::thread;
 
-use deadliner_schedular::{bg_system_tray, register_auto_launch, start_schedular};
+use deadliner_schedular::{bg_system_tray, register_auto_launch, run_server, start_schedular};
 
 #[tokio::main]
 async fn main() {
-    let sched = start_schedular();
+    start_schedular();
+
+    thread::spawn(|| {
+        run_server();
+    });
 
     register_auto_launch();
     bg_system_tray();

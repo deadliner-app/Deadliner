@@ -17,6 +17,7 @@ use chrono::{Local, NaiveDateTime};
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::{self, Command};
+use std::time::{Duration, Instant};
 use std::{env, fs};
 use std::{fs::File, path};
 
@@ -142,6 +143,24 @@ fn save_inputs(conf: &DeadlinerConf, exit: bool) -> Result<(), String> {
             fs::write(cache_conf, serde_json::to_string_pretty(&conf).unwrap(),),
             "Couldn't save your configuration to the filesystem!"
         );
+
+        // Check if there's an already running instance of schedular
+        let port = fs::read_to_string(new_path("port.txt")).unwrap();
+        let server_url = format!("http://127.0.0.1:{}", port);
+
+        let res = reqwest::blocking::Client::builder()
+            .timeout(Duration::from_millis(50))
+            .build()
+            .unwrap()
+            .get(&server_url)
+            .send();
+
+        let is_schedular_running = res.is_ok() && res.unwrap().status().as_u16() == 200;
+
+        if is_schedular_running {
+            // Send a request to shutdown the running schedular
+            reqwest::blocking::get(server_url + "/shutdown").unwrap();
+        }
 
         // !Here we setup a schedule to update the wallpaper
         let schedular_exec = format!("deadliner-schedular.{}", &get_current_file_ext());
