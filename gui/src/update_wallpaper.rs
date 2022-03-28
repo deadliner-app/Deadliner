@@ -54,25 +54,25 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
 
     let mut deadline_str = String::new();
 
-    if conf.show_months {
+    if conf.show_months && months != 0 {
         deadline_str.push_str(&format!("{} Months", months));
     }
 
-    if conf.show_weeks {
+    if conf.show_weeks && weeks != 0 {
         if conf.show_months {
             deadline_str.push_str(", ");
         }
         deadline_str.push_str(&format!("{} Weeks", weeks));
     }
 
-    if conf.show_days {
+    if conf.show_days && days != 0 {
         if conf.show_months || conf.show_weeks {
             deadline_str.push_str(", ");
         }
         deadline_str.push_str(&format!("{} Days", days));
     }
 
-    if conf.show_hours {
+    if conf.show_hours && hours != 0 {
         if conf.show_months || conf.show_weeks || conf.show_days {
             deadline_str.push_str(", ");
         }
