@@ -17,6 +17,7 @@ text-to-png = "0.2.0"
 tokio-cron-scheduler = "0.5.0"
 tokio = { version = "1.17.0", features = ["full"] }
 tao = { version = "0.6.4", features = ["tray"] }
+notify-rust = "4"
 
 [[bin]]
 name = "deadliner-schedular"

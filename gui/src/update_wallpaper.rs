@@ -5,7 +5,7 @@ use crate::{
     ScreenDimensions,
 };
 use chrono::{Local, NaiveDateTime};
-use image::{DynamicImage, Rgb, RgbImage};
+use image::{imageops::FilterType, DynamicImage, Rgb, RgbImage};
 use imageproc::{
     drawing::{draw_filled_rect_mut, Canvas},
     rect::Rect,
@@ -107,7 +107,7 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
     }
 }
 
-fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String, String> {
+pub fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String, String> {
     let font_date_bytes = fs::read(new_path(&format!("assets/fonts/{:?}.ttf", conf.font))).unwrap();
 
     let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
@@ -164,6 +164,107 @@ fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String
     let y = background.height() / 2 - text_png.size.height / 2;
 
     image::imageops::overlay(&mut background, &text_image, x, y);
+
+    let file_path = get_cache_dir().join("result.png");
+    let file_path = file_path.to_str().unwrap().to_owned();
+
+    unwrap_or_return!(background.save(&file_path), "Couldn't save result.png");
+
+    Ok(file_path)
+}
+
+pub fn generate_deadline_over_wallpaper(
+    deadline_str: &str,
+    conf: &SanitizedConf,
+) -> Result<String, String> {
+    let font_date_bytes = fs::read(new_path(&format!("assets/fonts/{:?}.ttf", conf.font))).unwrap();
+
+    let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
+
+    let text_png = renderer
+        .render_text_to_png_data(deadline_str, conf.font_size, conf.font_color.as_str())
+        .unwrap();
+
+    let text_image = image::load_from_memory(&text_png.data).unwrap();
+
+    let mut background;
+
+    if conf.bg_type == BackgroundOptions::FromDisk {
+        background = image::open(conf.bg_location.as_ref().unwrap()).unwrap();
+    } else if conf.bg_type == BackgroundOptions::Solid {
+        let ScreenDimensions { width, height } = conf.screen_dimensions;
+
+        let mut image = RgbImage::new(width, height);
+
+        draw_filled_rect_mut(
+            &mut image,
+            Rect::at(0, 0).of_size(width, height),
+            Rgb(conf.bg_color_arr),
+        );
+
+        background = DynamicImage::ImageRgb8(image);
+    } else {
+        let downloaded_image = match download_image(conf.bg_url.as_ref().unwrap()) {
+            Ok(img) => img,
+            Err(_) => {
+                return Err(String::from(
+                    "Couldn't download the Image from the supplied URL!",
+                ))
+            }
+        };
+
+        background = image::io::Reader::open(downloaded_image)
+            .unwrap()
+            .with_guessed_format()
+            .unwrap()
+            .decode()
+            .unwrap();
+    }
+
+    if background.width() <= text_png.size.width || background.height() <= text_png.size.height {
+        return Err(String::from(
+            "Font size is bigger than wallpaper's dimensions!",
+        ));
+    }
+
+    // 50% Background Image width or height - 50% Text Image width or height
+    // To Center the text both horizontally and vertically
+    let x = background.width() / 2 - text_png.size.width / 2;
+    let y = background.height() / 2 - text_png.size.height / 2;
+
+    let party_popper = image::open(new_path("assets/party-popper.png")).unwrap();
+    let party_popper_size = {
+        let size = (background.width() as f64 * 0.1) as u32;
+        if size > party_popper.width() {
+            party_popper.width()
+        } else {
+            size
+        }
+    };
+
+    let party_popper = image::imageops::resize(
+        &party_popper,
+        party_popper_size,
+        party_popper_size,
+        FilterType::Nearest,
+    );
+
+    image::imageops::overlay(&mut background, &text_image, x, y);
+
+    // Add party poppers left and right.
+    let offset = 30;
+    image::imageops::overlay(
+        &mut background,
+        &party_popper,
+        offset,
+        conf.screen_dimensions.height - party_popper.height() - offset,
+    );
+    image::imageops::overlay(
+        &mut background,
+        &image::imageops::flip_horizontal(&party_popper),
+        conf.screen_dimensions.width - party_popper.width() - offset,
+        conf.screen_dimensions.height - party_popper.height() - offset,
+    );
 
     let file_path = get_cache_dir().join("result.png");
     let file_path = file_path.to_str().unwrap().to_owned();

@@ -1,19 +1,25 @@
 mod macros;
-mod register_auto_launch;
+mod notify;
 mod server;
+mod startup_launch;
 mod system_tray;
 
-use std::{env, fs, time::Duration};
+use std::{
+    env, fs,
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 use chrono::{Local, NaiveDateTime};
-use deadliner_gui::{new_path, update_wallpaper, SanitizedConf};
+use deadliner_gui::{generate_deadline_over_wallpaper, new_path, update_wallpaper, SanitizedConf};
 pub use macros::*;
-pub use register_auto_launch::*;
+pub use notify::*;
 pub use server::*;
+pub use startup_launch::*;
 pub use system_tray::*;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
-pub fn start_schedular() {
+pub fn start_schedular(exit: Arc<Mutex<bool>>) {
     let conf_str =
         fs::read_to_string(new_path("config.json")).expect("Can't read Config JSON file!");
 
@@ -24,7 +30,16 @@ pub fn start_schedular() {
 
     if !skip_update_on_startup {
         // Run on OS launch
-        update_wallpaper(&conf).unwrap();
+
+        let minutes = get_minutes_left(&conf);
+        if minutes <= 0 {
+            set_deadline_is_over(&conf);
+
+            let mut exit = exit.lock().unwrap();
+            *exit = true;
+        } else if minutes < 60 {
+            update_wallpaper(&conf).unwrap();
+        }
     }
 
     let mut sched = JobScheduler::new();
@@ -58,14 +73,16 @@ pub fn start_schedular() {
     sched
         .add(
             Job::new("0 * * * * * *", move |_uuid, _l| {
-                let today = Local::now().naive_local();
-                let deadline =
-                    NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
-                let diff = deadline.signed_duration_since(today);
+                let minutes = get_minutes_left(&conf);
 
-                let minutes = diff.num_minutes();
+                // Check every minute if the deadline is over.
+                // If so, exit and remove schedular from auto-startup
+                if minutes <= 0 {
+                    set_deadline_is_over(&conf);
 
-                if minutes < 60 {
+                    let mut exit = exit.lock().unwrap();
+                    *exit = true;
+                } else if minutes < 60 {
                     update_wallpaper(&conf).unwrap();
                 }
             })
@@ -84,4 +101,32 @@ fn instantiate_job<'a>(cron: &str, conf: SanitizedConf) -> Job {
     .unwrap();
 
     job
+}
+
+fn set_deadline_is_over(conf: &SanitizedConf) {
+    unregister_auto_launch();
+    fs::remove_file(new_path("config.json")).unwrap();
+
+    let file_path = generate_deadline_over_wallpaper("Deadline is Over", &conf);
+
+    match file_path {
+        Ok(file_path) => {
+            // Sets the wallpaper for the current desktop from a URL.
+            wallpaper::set_mode(conf.bg_mode.into()).unwrap();
+            wallpaper::set_from_path(&file_path).unwrap();
+        }
+        _ => {}
+    }
+
+    notify_deadline_over();
+}
+
+fn get_minutes_left(conf: &SanitizedConf) -> i64 {
+    let today = Local::now().naive_local();
+    let deadline = NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
+    let diff = deadline.signed_duration_since(today);
+
+    let minutes = diff.num_minutes();
+
+    minutes
 }

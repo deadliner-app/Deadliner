@@ -9,11 +9,13 @@ use deadliner_schedular::{bg_system_tray, register_auto_launch, run_server, star
 
 #[tokio::main]
 async fn main() {
-    start_schedular();
+    let exit = Arc::new(Mutex::new(false));
+
+    let sched_exit = Arc::clone(&exit);
+    start_schedular(sched_exit);
 
     // a Mutex exit value to trigger graceful shutdown when `/shutdown` endpoint
     // is hit by the gui.
-    let exit = Arc::new(Mutex::new(false));
     let server_exit = Arc::clone(&exit);
     thread::spawn(move || {
         run_server(server_exit);
