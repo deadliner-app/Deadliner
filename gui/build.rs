@@ -1,7 +1,9 @@
 use std::{
-    env, fs,
+    env, fs, io,
     path::{Path, PathBuf},
 };
+#[cfg(windows)]
+use winres::WindowsResource;
 
 const COPY_DIR: &'static str = "assets";
 
@@ -47,4 +49,14 @@ fn main() {
 
     // Copy the directory
     copy_dir(COPY_DIR, &out);
+
+    // Add Icon to exec
+    #[cfg(windows)]
+    {
+        WindowsResource::new()
+            // This path can be absolute, or relative to your crate root.
+            .set_icon("assets/schedular.ico")
+            .compile()
+            .unwrap();
+    }
 }
