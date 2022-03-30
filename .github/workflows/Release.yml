@@ -11,12 +11,15 @@ jobs:
       matrix:
         include:
           - os: windows-latest
+            name: Windows
             archive: zip
             file_ext: ".exe"
           - os: ubuntu-latest
+            name: Linux
             archive: zip
             file_ext: ""
           - os: macos-latest
+            name: MacOS
             archive: zip
             file_ext: ""
     steps:
@@ -41,8 +44,12 @@ jobs:
           files: target/release/port.txt target/release/deadliner${{ matrix.file_ext }} target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons/ target/release/assets/
           dest: result.${{ matrix.archive }}
 
-      - name: Upload Release
-        uses: ncipollo/release-action@v1
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          artifacts: release.${{ matrix.archive }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release.${{ matrix.archive }}
+          asset_name: ${{ matrix.name }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: ""
