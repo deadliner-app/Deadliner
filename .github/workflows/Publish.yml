@@ -1,0 +1,48 @@
+on:
+  release:
+    types: [created]
+
+jobs:
+  release:
+    name: release ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            archive: zip
+            file_ext: ".exe"
+          - os: ubuntu-latest
+            archive: zip
+            file_ext: ""
+          - os: macos-latest
+            archive: zip
+            file_ext: ""
+    steps:
+      - uses: actions/checkout@master
+      
+      - name: Install System Libraries
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgtk-3-dev libappindicator3-dev
+          sudo apt-get install libxcb-xfixes0-dev
+          sudo apt-get install libxcb-shape0-dev
+
+      - name: Compile
+        run: | 
+          cargo build --release
+          ls target/release
+
+      - uses: papeloto/action-zip@v1
+        name: Release
+        with:
+          files: target/release/port.txt target/release/deadliner${{ matrix.file_ext }} target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons/ target/release/assets/
+          dest: result.${{ matrix.archive }}
+
+      - name: Upload Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: release.${{ matrix.archive }}
+          token: ${{ secrets.GITHUB_TOKEN }}
