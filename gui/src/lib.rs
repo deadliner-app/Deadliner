@@ -230,7 +230,7 @@ pub fn get_current_file_ext() -> String {
         .collect::<Vec<&str>>();
 
     if splitted_by_dots.len() < 2 {
-        String::new();
+        String::new()
     } else {
         splitted_by_dots[splitted_by_dots.len() - 1].to_string()
     }
