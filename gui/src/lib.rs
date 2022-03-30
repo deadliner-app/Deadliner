@@ -229,5 +229,9 @@ pub fn get_current_file_ext() -> String {
         .split(".")
         .collect::<Vec<&str>>();
 
-    splitted_by_dots[splitted_by_dots.len() - 1].to_string()
+    if splitted_by_dots.len() < 2 {
+        String::new();
+    } else {
+        splitted_by_dots[splitted_by_dots.len() - 1].to_string()
+    }
 }
