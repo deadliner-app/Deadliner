@@ -27,6 +27,7 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
 
     let args: Vec<String> = env::args().collect();
     let skip_update_on_startup = args.get(1) == Some(&"skip-update-on-launch".to_string());
+    let mut schedule = true;
 
     if !skip_update_on_startup {
         // Run on OS launch
@@ -37,9 +38,14 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
 
             let mut exit = exit.lock().unwrap();
             *exit = true;
+            schedule = false;
         } else if minutes < 60 {
             update_wallpaper(&conf).unwrap();
         }
+    }
+
+    if !schedule {
+        return;
     }
 
     let mut sched = JobScheduler::new();
