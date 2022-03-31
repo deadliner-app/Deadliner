@@ -1,4 +1,4 @@
-<h1 align="center">Deadliner (Work In Progress)
+<h1 align="center">Deadliner
 <div align="center">
 <img src="https://github.com/YassinEldeeb/deadliner/actions/workflows/Tests.yml/badge.svg"/>
 <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"/>
@@ -27,3 +27,6 @@ And the answer always points to **setting clear deadlines** as the most effectiv
 
 > As seen in [this kind of survey video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) by Jonas Tyroller.
 
+
+## Credits
+Logo is from [flaticon](https://www.flaticon.com/premium-icon/deadline_2838628?term=deadline&page=1&position=19&page=1&position=19&related_id=2838628&origin=search)
