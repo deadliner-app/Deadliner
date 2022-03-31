@@ -10,9 +10,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "jszip": "^3.8.0"
+    "adm-zip": "^0.5.9"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.4.34",
     "@types/node": "^17.0.23"
   }
 }

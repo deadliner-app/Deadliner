@@ -1,4 +1,4 @@
-import JSZip from "jszip"
+import AdmZip from "adm-zip"
 import fs from 'fs'
 import path from 'path'
 
@@ -29,23 +29,16 @@ input.forEach((e)=> {
     handlePath(e);
 });
 
-let zip = new JSZip();
+let zip = new AdmZip();
 
 paths.forEach((p) => {
-    let path = p;
+    let new_path = p;
 
     if (p.startsWith("@root/")) {
-        path = p.replace("@root/", "").split('/').pop()!
+        new_path = p.replace("@root/", "").split('/').pop()!
     }
 
-    zip.file(path, fs.readFileSync(p.replace("@root/", "")));
+    zip.addFile(new_path.replace(`target${path.sep}release${path.sep}`, ""), fs.readFileSync(p.replace("@root/", "")));
 });
 
-zip
-.generateNodeStream({ type: 'nodebuffer', streamFiles:true })
-.pipe(fs.createWriteStream(outputLocation))
-.on('finish', () => {
-    // JSZip generates a readable stream with a "end" event,
-    // but is piped here in a writable stream which emits a "finish" event.
-    console.log(`${outputLocation} written.`);
-});
+zip.writeZip(outputLocation);

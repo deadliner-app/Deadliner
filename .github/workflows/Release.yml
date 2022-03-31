@@ -11,15 +11,15 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            name: Windows
+            name: windows
             archive: zip
             file_ext: ".exe"
           - os: ubuntu-latest
-            name: Linux
+            name: linux
             archive: zip
             file_ext: ""
           - os: macos-latest
-            name: MacOS
+            name: mac
             archive: zip
             file_ext: ""
     steps:
@@ -46,7 +46,7 @@ jobs:
       - name: Package (Zip)
         run: |
           cd zipper && npm i && cd ..
-          npx ts-node zipper/index deadliner.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
+          npx ts-node zipper/index deadliner.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} @root/target/release/icons @root/target/release/assets
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
