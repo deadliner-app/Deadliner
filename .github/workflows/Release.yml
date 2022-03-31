@@ -41,14 +41,14 @@ jobs:
       - uses: papeloto/action-zip@v1
         name: Release
         with:
-          files: target/release/port.txt target/release/deadliner${{ matrix.file_ext }} target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons/ target/release/assets/
-          dest: deadline.${{ matrix.archive }}
+          files: target/release/port.txt target/release/deadliner${{ matrix.file_ext }} target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
+          dest: deadline-${{ github.ref }}.${{ matrix.archive }}
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: deadline.${{ matrix.archive }}
+          file: deadline-${{ github.ref }}.${{ matrix.archive }}
           asset_name: ${{ matrix.name }}
           tag: ${{ github.ref }}
           overwrite: true
