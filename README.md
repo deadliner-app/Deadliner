@@ -27,3 +27,6 @@ And the answer always points to **setting clear deadlines** as the most effectiv
 
 > As seen in [this kind of survey video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) by Jonas Tyroller.
 
+
+## Credits
+Logo is from [flaticon](https://www.flaticon.com/premium-icon/deadline_2838628?term=deadline&page=1&position=19&page=1&position=19&related_id=2838628&origin=search)
