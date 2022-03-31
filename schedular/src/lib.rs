@@ -40,7 +40,7 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
             *exit = true;
             schedule = false;
         } else if minutes < 60 {
-            update_wallpaper(&conf).unwrap();
+            update_wallpaper(&conf, false).unwrap();
         }
     }
 
@@ -89,7 +89,7 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
                     let mut exit = exit.lock().unwrap();
                     *exit = true;
                 } else if minutes < 60 {
-                    update_wallpaper(&conf).unwrap();
+                    update_wallpaper(&conf, false).unwrap();
                 }
             })
             .unwrap(),
@@ -102,7 +102,7 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
 fn instantiate_job<'a>(cron: &str, conf: SanitizedConf) -> Job {
     let job = Job::new(cron, move |_uuid, _l| {
         // Setup minutes schedular if deadline is under 60 minutes
-        update_wallpaper(&conf).unwrap();
+        update_wallpaper(&conf, false).unwrap();
     })
     .unwrap();
 

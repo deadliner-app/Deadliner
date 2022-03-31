@@ -12,7 +12,7 @@ use imageproc::{
 };
 use text_to_png::TextRenderer;
 
-pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
+pub fn update_wallpaper(conf: &SanitizedConf, test_text_dimensions: bool) -> Result<(), String> {
     let today = Local::now().naive_local();
     let deadline = NaiveDateTime::parse_from_str(&conf.deadline_str, "%Y-%m-%d %I:%M %p").unwrap();
     let diff = deadline.signed_duration_since(today);
@@ -52,10 +52,10 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
 
     let mut deadline_str = String::new();
 
-    let show_months = conf.show_months && months != 0;
-    let show_weeks = conf.show_weeks && weeks != 0;
-    let show_days = conf.show_days && days != 0;
-    let show_hours = conf.show_hours && hours != 0;
+    let show_months = conf.show_months && (months != 0 || test_text_dimensions);
+    let show_weeks = conf.show_weeks && (weeks != 0 || test_text_dimensions && months > 1);
+    let show_days = conf.show_days && (days != 0 || test_text_dimensions && weeks > 1);
+    let show_hours = conf.show_hours && (hours != 0 || test_text_dimensions && days > 1);
 
     let format_time_unit =
         |time_unit, num| format!("{} {}{}", num, time_unit, if num > 1 { "s" } else { "" });
@@ -97,10 +97,11 @@ pub fn update_wallpaper(conf: &SanitizedConf) -> Result<(), String> {
 
     match file_path {
         Ok(file_path) => {
-            // Sets the wallpaper for the current desktop from a URL.
-            wallpaper::set_mode(conf.bg_mode.into()).unwrap();
-            wallpaper::set_from_path(&file_path).unwrap();
-
+            if !test_text_dimensions {
+                // Sets the wallpaper for the current desktop from a URL.
+                wallpaper::set_mode(conf.bg_mode.into()).unwrap();
+                wallpaper::set_from_path(&file_path).unwrap();
+            }
             Ok(())
         }
         Err(msg) => Err(msg),

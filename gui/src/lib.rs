@@ -16,8 +16,8 @@ pub use update_wallpaper::*;
 use chrono::{Local, NaiveDateTime};
 use std::error::Error;
 use std::path::PathBuf;
-use std::process::{self, Command};
-use std::time::{Duration, Instant};
+use std::process::Command;
+use std::time::Duration;
 use std::{env, fs, thread};
 use std::{fs::File, path};
 
@@ -123,7 +123,9 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     }
 
     // Run update_wallpaper once to check for any potential errors before saving this conf.
-    update_wallpaper(&sanitized_conf)?;
+    update_wallpaper(&sanitized_conf, true)?;
+
+    update_wallpaper(&sanitized_conf, false)?;
 
     // If we managed to update the wallpaper successfully, then save the current conf.
     // Write the config.json next to the binaries instead of in the cache dir cause this is a very
