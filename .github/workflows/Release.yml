@@ -46,14 +46,14 @@ jobs:
       - name: Package (Zip)
         run: |
           cd zipper && npm i && cd ..
-          npx ts-node zipper/index deadliner-${{ github.ref }}.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
+          npx ts-node zipper/index deadliner.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: deadliner-${{ github.ref }}.${{ matrix.archive }}
-          asset_name: deadliner-${{ github.ref }}.${{ matrix.archive }}
+          file: deadliner.${{ matrix.archive }}
+          asset_name: deadliner.${{ matrix.archive }}
           tag: ${{ github.ref }}
           overwrite: true
           body: ""
