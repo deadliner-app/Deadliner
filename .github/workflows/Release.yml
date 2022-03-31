@@ -4,7 +4,7 @@ on:
 
 jobs:
   release:
-    name: release-${{ matrix.target }}
+    name: ${{ 'release-' + matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,7 +24,12 @@ jobs:
             file_ext: ""
     steps:
       - uses: actions/checkout@master
-      
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.13.0
+
       - name: Install System Libraries
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
@@ -38,18 +43,17 @@ jobs:
           cargo build --release
           ls target/release
 
-      - uses: papeloto/action-zip@v1
-        name: Release
-        with:
-          files: target/release/port.txt target/release/deadliner${{ matrix.file_ext }} target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
-          dest: deadline-${{ github.ref }}.${{ matrix.archive }}
+      - name: Package (Zip)
+        run: |
+          cd zipper && npm i && cd ..
+          npx ts-node zipper/index deadliner-${{ github.ref }}.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: deadline-${{ github.ref }}.${{ matrix.archive }}
-          asset_name: ${{ matrix.name }}
+          file: deadliner-${{ github.ref }}.${{ matrix.archive }}
+          asset_name: deadliner-${{ github.ref }}.${{ matrix.archive }}
           tag: ${{ github.ref }}
           overwrite: true
           body: ""
