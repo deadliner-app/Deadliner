@@ -4,7 +4,7 @@ on:
 
 jobs:
   release:
-    name: ${{ matrix.target }}
+    name: release-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -53,7 +53,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: deadliner.${{ matrix.archive }}
-          asset_name: deadliner.${{ matrix.archive }}
+          asset_name: deadliner-${{ matrix.name }}.${{ matrix.archive }}
           tag: ${{ github.ref }}
           overwrite: true
           body: ""
