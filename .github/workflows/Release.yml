@@ -46,7 +46,7 @@ jobs:
       - name: Package (Zip)
         run: |
           cd zipper && npm i && cd ..
-          npx ts-node zipper/index deadliner.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} @root/target/release/icons @root/target/release/assets
+          npx ts-node zipper/index deadliner.${{ matrix.archive }} @root/target/release/port.txt @root/target/release/deadliner${{ matrix.file_ext }} @root/target/release/deadliner-schedular${{ matrix.file_ext }} target/release/icons target/release/assets
 
       - name: Upload binary to release
         uses: svenstaro/upload-release-action@v2
