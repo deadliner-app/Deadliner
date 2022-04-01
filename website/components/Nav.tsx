@@ -6,7 +6,7 @@ export const Nav = () => {
   return (
     <header className="w-full flex justify-center z-50 top-0 transition duration-200">
       <nav className="flex justify-between items-center w-full py-4 lg:py-6 max-w-screen-2xl px-6 lg:px-12">
-        <div>
+        <div className="cursor-pointer">
           <Image src="/logo.svg" width={210} height={50} alt="Logo" />
         </div>
         <ul className="grow list-none flex justify-end">
