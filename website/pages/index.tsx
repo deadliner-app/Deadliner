@@ -13,11 +13,11 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="/images/web-screenshot.png" />
         <meta name="twitter:title" content="Deadliner" />
         <meta
           name="twitter:description"
-          content="Deadliner helps you keep track of the time left for your deadline by dynamically updating the wallpaper of your desktop with the time left."
+          content="Gently manage your deadline."
         />
         <meta name="twitter:image" content="/images/web-screenshot.png" />
 
