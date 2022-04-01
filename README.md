@@ -11,6 +11,8 @@
 # What's Deadliner?
 Deadliner is a cross-platform desktop application for setting deadline for a project and keeping track of the time left by dynamically updating the wallpaper of your desktop with the time left so that you're always reminded with your deadline and how much time is left and hopefully can help you stop procrastinating like me.
 
+[See the landing page for more details](https://deadliner.vercel.app/)
+
 ### App Screenshot
 ![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/app-gui.png)
 
@@ -36,7 +38,7 @@ So I searched for desktop apps for setting deadlines and keeping track of it and
 
 - Limited customizations
 - I’ve to start it whenever I boot up my OS
-- Lots of super annoying notifications for the remaining times
+- Lots of super annoying notifications for the remaining time
 - Uses kind of a lot of resources in the background
 
 So, that was a sign for a good Rust 🦀 project that aims for solving these issues 💪.
