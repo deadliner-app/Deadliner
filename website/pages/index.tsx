@@ -23,12 +23,12 @@ const Home: NextPage = () => {
         />
         <meta
           name="twitter:image"
-          content="https://github.com/YassinEldeeb/Deadliner/blob/main/.github/images/web-screenshot.png"
+          content="https://raw.githubusercontent.com/YassinEldeeb/Deadliner/main/.github/images/web-screenshot.png"
         />
 
         <meta
           property="og:image"
-          content="https://github.com/YassinEldeeb/Deadliner/blob/main/.github/images/web-screenshot.png"
+          content="https://raw.githubusercontent.com/YassinEldeeb/Deadliner/main/.github/images/web-screenshot.png"
         />
         <meta property="og:url" content="https://deadliner.vercel.app" />
         <meta property="og:title" content="A Twitter for My Sister" />
