@@ -13,13 +13,17 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <meta name="twitter:card" content="/images/web-screenshot.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@YassinEldeeb7" />
         <meta name="twitter:title" content="Deadliner" />
         <meta
           name="twitter:description"
           content="Gently manage your deadline."
         />
-        <meta name="twitter:image" content="/images/web-screenshot.png" />
+        <meta
+          name="twitter:image"
+          content="https://deadliner.vercel.app/images/web-screenshot.png"
+        />
 
         <title>Deadliner</title>
       </Head>
