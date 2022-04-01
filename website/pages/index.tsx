@@ -7,25 +7,32 @@ import Hero from "./Hero";
 import Motivation from "./Motivation";
 import Downloads from "./Downloads";
 import Footer from "../components/Footer";
+import Head from "next/head";
 
 const Home: NextPage = () => {
   return (
-    <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl">
-      <div className="flex flex-col h-screen">
-        <Nav />
-        <Hero />
+    <>
+      <Head>
+        <title>Deadliner</title>
+      </Head>
+
+      <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl">
+        <div className="flex flex-col h-screen">
+          <Nav />
+          <Hero />
+        </div>
+        <Separator />
+        <Features />
+        <Separator />
+        <Gallery />
+        <Separator />
+        <Motivation />
+        <Separator />
+        <Downloads />
+        <Separator />
+        <Footer />
       </div>
-      <Separator />
-      <Features />
-      <Separator />
-      <Gallery />
-      <Separator />
-      <Motivation />
-      <Separator />
-      <Downloads />
-      <Separator />
-      <Footer />
-    </div>
+    </>
   );
 };
 

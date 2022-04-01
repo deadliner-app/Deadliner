@@ -10,7 +10,6 @@ export default function Document() {
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
-        <title>Deadliner</title>
         <link rel="icon" type="image/x-icon" href="/icon.ico"></link>
       </Head>
       <body className="font-Poppins">
