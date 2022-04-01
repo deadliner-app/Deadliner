@@ -3,12 +3,18 @@ import Section from "../components/Section";
 
 const Motivation = () => {
   return (
-    <Section id="motivation" className="justify-start flex-col">
+    <Section id="motivation" className="items-start justify-start flex-col">
       <h1 className="font-semibold text-8xl text-white mb-14">Motivation</h1>
       <p className="text-grey text-xl pb-7">
         So, I was researching on “what makes someone productive?” for the 731th
-        time! And surprisingly I found it in a video from Jonas Tyroller - Indie
-        game dev.
+        time! And surprisingly I found it in a video from{" "}
+        <a
+          className="text-white font-medium hover:underline"
+          href="https://www.youtube.com/c/JonasTyroller"
+        >
+          Jonas Tyroller
+        </a>{" "}
+        - Indie game dev.
       </p>
       <p className="text-grey text-xl pb-7">
         I like to take inspiration from game devs cause in my opinion
@@ -45,7 +51,7 @@ const Motivation = () => {
       <ul className="text-grey list-disc list-inside text-xl pb-7">
         <li>Limited customizations</li>
         <li>I’ve to start it whenever I boot up my OS</li>
-        <li>Lots of super annoying notifications for the remaining times</li>
+        <li>Lots of super annoying notifications for the remaining time</li>
         <li>Uses kind of a lot of resources in the background</li>
       </ul>
       <p className="text-grey text-xl pb-7">

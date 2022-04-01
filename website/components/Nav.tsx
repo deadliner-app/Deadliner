@@ -24,7 +24,7 @@ export const Nav = () => {
           </li>
         </ul>
         <a href="https://github.com/YassinEldeeb/Deadliner">
-          <div className="ml-10 w-8 h-8">
+          <div className="ml-10 w-8 h-8 hover:opacity-70 transition-all duration-100">
             <Image src="/images/github.png" alt="" width={32} height={32} />
           </div>
         </a>
