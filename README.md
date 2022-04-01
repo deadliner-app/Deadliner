@@ -38,7 +38,7 @@ So I searched for desktop apps for setting deadlines and keeping track of it and
 
 - Limited customizations
 - I’ve to start it whenever I boot up my OS
-- Lots of super annoying notifications for the remaining times
+- Lots of super annoying notifications for the remaining time
 - Uses kind of a lot of resources in the background
 
 So, that was a sign for a good Rust 🦀 project that aims for solving these issues 💪.
