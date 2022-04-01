@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+img {
+    display: block;
+}
+
+.swiper-button-next,.swiper-button-prev {
+    color: #FED843 !important;
+}
+
+.swiper-scrollbar-drag {
+    background: #FED843 !important;
+}
