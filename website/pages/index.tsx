@@ -13,6 +13,8 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
+        <meta name="twitter:site" content="@YassinEldeeb7" />
+        <meta name="twitter:creator" content="@YassinEldeeb7" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Deadliner" />
         <meta
@@ -20,12 +22,19 @@ const Home: NextPage = () => {
           content="Gently manage your deadline."
         />
         <meta
+          name="twitter:image"
+          content="https://deadliner.vercel.app/images/web-screenshot.png"
+        />
+
+        <meta
           property="og:image"
           content="https://deadliner.vercel.app/images/web-screenshot.png"
         />
+        <meta property="og:url" content="https://deadliner.vercel.app" />
+        <meta property="og:title" content="A Twitter for My Sister" />
         <meta
-          name="twitter:image"
-          content="https://deadliner.vercel.app/images/web-screenshot.png"
+          property="og:description"
+          content="Gently manage your deadline."
         />
         <title>Deadliner</title>
       </Head>
