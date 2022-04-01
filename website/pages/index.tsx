@@ -22,7 +22,7 @@ const Home: NextPage = () => {
           content="Gently manage your deadline."
         />
         <meta
-          name="twitter:image"
+          name="twitter:image:src"
           content="https://raw.githubusercontent.com/YassinEldeeb/Deadliner/main/.github/images/web-screenshot.png"
         />
 
