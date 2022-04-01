@@ -11,8 +11,8 @@ const Motivation = () => {
         game dev.
       </p>
       <p className="text-grey text-xl pb-7">
-        I like to take inspiration from game devs cause in my opinion they're
-        the most motivated/inspiring developers 😊.
+        I like to take inspiration from game devs cause in my opinion
+        they&apos;re the most motivated/inspiring developers 😊.
       </p>
       <p className="text-grey text-xl pb-7">
         This video was about asking successful game devs on how they think about
