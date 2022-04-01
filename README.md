@@ -17,16 +17,29 @@ Deadliner is a cross-platform desktop application for setting deadline for a pro
 ### Desktop Screenshot
 ![Screenshot](https://github.com/YassinEldeeb/deadliner/blob/main/.github/images/desktop.png)
 
-# Why deadlines can help increase your productivity?
+# Why?
 
-I like to take inspiration from game devs cause in my opinion they're the most motivated/inspiring developers.
+So, I was researching on “what makes someone productive?” for the 731th time! And surprisingly I found it in a [video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) from [Jonas Tyroller](https://www.youtube.com/c/JonasTyroller) - Indie game dev.
 
-When you ask any successful game dev about how does he stay productive even though he knows that he'll probably spend the next 4-10 years of his life developing his game, "how do you eliminate **procrastination**"?
+I like to take inspiration from game devs cause in my opinion they're the most  motivated/inspiring developers 😊.
 
-And the answer always points to **setting clear deadlines** as the most effective *magical* solution.
+This video was about asking successful game devs on how they think about productivity and the results were ***fascinating***, they all agreed on ***`Deadlines`*** as the most effective solution for procrastination.
 
-> As seen in [this kind of survey video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) by Jonas Tyroller.
+I’ve always avoided deadlines in my side projects as they’re usually for learning purposes cause 
+I thought setting deadlines will make me rush through the project and skip learning important details.
 
+And so I said to myself: “Hey, let’s test this technique on my current side project(lightning-fast markdown parser), that can also improve my deadlines’ estimations a bit.”
+
+Then I set a 14-days deadline, I immediately started to feel the difference on the first 2-4 days, after that I started to forget about how much time is left, so I wake up and say: “Hey, let’s watch a YT video and get to work after that, not a big deal right?”, plot twist: Yes, it was a big deal. The way you start your day has a huge impact on how the rest of it will go.
+
+So I searched for desktop apps for setting deadlines and keeping track of it and what I found was that most of them share the same issues:
+
+- Limited customizations
+- I’ve to start it whenever I boot up my OS
+- Lots of super annoying notifications for the remaining times
+- Uses kind of a lot of resources in the background
+
+So, that was a sign for a good Rust 🦀 project that aims for solving these issues 💪.
 
 ## Credits
 Logo is from [flaticon](https://www.flaticon.com/premium-icon/deadline_2838628?term=deadline&page=1&position=19&page=1&position=19&related_id=2838628&origin=search)
