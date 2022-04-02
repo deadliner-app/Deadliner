@@ -30,6 +30,7 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
 
     if !skip_update_on_startup {
         // Run on OS launch
+        update_wallpaper(&conf, false).unwrap();
 
         let minutes = get_minutes_left(&conf);
         if minutes <= 0 {

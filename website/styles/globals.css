@@ -23,6 +23,15 @@ img {
   width: 100%;
 }
 
+.drawer {
+  transition: 0.2s all ease-in-out;
+  transform: translateX(100%);
+}
+
+.drawer-open {
+  transform: translateX(0%);
+}
+
 @media screen and (max-width: 1024px) {
   .swiper-button-next::after,
   .swiper-button-prev::after {

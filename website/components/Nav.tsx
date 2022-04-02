@@ -5,7 +5,7 @@ import { Link } from "./Link";
 export const Nav = () => {
   const [openDrawer, setOpenDrawer] = useState(false);
 
-  const OpenDrawerHandler = () => {
+  const OpenDrawerHandler = async () => {
     setOpenDrawer(!openDrawer);
   };
 
@@ -47,8 +47,8 @@ export const Nav = () => {
     return (
       <div
         onClick={OpenDrawerHandler}
-        className={`py-48 flex flex-col lg:hidden w-screen h-screen absolute left-0 top-0 transition duration-200 bg-[#FABE2C] ${
-          openDrawer ? "translate-x-0" : "translate-x-full"
+        className={`py-48 flex flex-col lg:hidden w-screen h-screen absolute left-0 top-0 transition duration-200 bg-[#FABE2C] drawer ${
+          openDrawer ? "drawer-open" : ""
         }`}
       >
         <ul className="grow list-none flex justify-around flex-col">
@@ -118,7 +118,7 @@ export const Nav = () => {
           )}
         </div>
 
-        {openDrawer && <MobileNavLinks />}
+        {true && <MobileNavLinks />}
 
         <div className="hidden lg:flex">
           <DesktopNavLinks />
