@@ -46,6 +46,7 @@ export const Nav = () => {
   const MobileNavLinks = () => {
     return (
       <div
+        onClick={OpenDrawerHandler}
         className={`py-48 flex flex-col lg:hidden w-screen h-screen absolute left-0 top-0 transition duration-200 bg-[#FABE2C] ${
           openDrawer ? "translate-x-0" : "translate-x-full"
         }`}
