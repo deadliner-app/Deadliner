@@ -45,6 +45,7 @@ pub struct DeadlinerConf {
     pub font: Font,
     pub font_size: u8,
     pub font_color: [u8; 3],
+    pub custom_font_location: String,
 
     pub date: String,
     pub hours: String,
@@ -64,6 +65,7 @@ pub struct Deadliner<'a> {
 
     error_msg: String,
     invalid_bg: bool,
+    invalid_font: bool,
 
     conf: DeadlinerConf,
 }
@@ -86,6 +88,7 @@ pub enum Font {
     PoppinsMedium,
     PoppinsRegular,
     PoppinsLight,
+    ChooseFromDisk,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, EnumIter, Serialize, Deserialize)]
@@ -320,6 +323,38 @@ impl<'a> App for Deadliner<'a> {
 
                 ui.add_space(PADDING);
 
+                if self.conf.font == Font::ChooseFromDisk {
+                    ui.horizontal(|ui| {
+                        if ui.button("Open font…").clicked() {
+                            if let Some(path) = rfd::FileDialog::new().pick_file() {
+                                let location = path.display().to_string();
+                                let file_name = get_file_name_from_path(&location);
+                                let supported_file_ext = ["ttf", "otf"];
+                                let file_ext =
+                                    file_name.split(".").collect::<Vec<&str>>().pop().unwrap();
+
+                                if supported_file_ext.contains(&file_ext) {
+                                    self.invalid_font = false;
+                                    self.conf.custom_font_location = location;
+                                } else {
+                                    self.invalid_font = true;
+                                }
+                            }
+                        }
+
+                        if self.invalid_font {
+                            ui.colored_label(Color32::from_rgb(255, 48, 48), "Not a font");
+                        } else if !self.conf.custom_font_location.is_empty() {
+                            ui.colored_label(
+                                Color32::from_rgba_unmultiplied(254, 216, 67, 200),
+                                get_file_name_from_path(&self.conf.custom_font_location),
+                            );
+                        }
+                    });
+
+                    ui.add_space(PADDING);
+                }
+
                 ui.horizontal(|ui| {
                     ui.label("Font Size:");
                     ui.add(egui::Slider::new(&mut self.conf.font_size, 5..=255));
@@ -417,6 +452,7 @@ impl<'a> Deadliner<'a> {
             textures: HashMap::new(),
             error_msg: String::new(),
             invalid_bg: false,
+            invalid_font: false,
             conf: DeadlinerConf {
                 screen_dimensions: ScreenDimensions {
                     width: screen_width,
@@ -425,6 +461,7 @@ impl<'a> Deadliner<'a> {
                 background: BackgroundOptions::Solid,
                 bg_color: [0, 0, 0],
                 bg_location: String::new(),
+                custom_font_location: String::new(),
                 bg_url: String::new(),
                 font: Font::PoppinsBlack,
                 date: String::new(),

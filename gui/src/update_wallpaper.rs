@@ -1,8 +1,8 @@
 use std::fs;
 
 use crate::{
-    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, SanitizedConf,
-    ScreenDimensions,
+    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, Font,
+    SanitizedConf, ScreenDimensions,
 };
 use chrono::{Local, NaiveDateTime};
 use image::{imageops::FilterType, DynamicImage, Rgb, RgbImage};
@@ -109,7 +109,11 @@ pub fn update_wallpaper(conf: &SanitizedConf, test_text_dimensions: bool) -> Res
 }
 
 pub fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<String, String> {
-    let font_date_bytes = fs::read(new_path(&format!("assets/fonts/{:?}.ttf", conf.font))).unwrap();
+    let font_date_bytes = if conf.font == Font::ChooseFromDisk {
+        fs::read(&conf.custom_font_location).unwrap()
+    } else {
+        fs::read(new_path(&format!("assets/fonts/{:?}.ttf", conf.font))).unwrap()
+    };
 
     let renderer = TextRenderer::try_new_with_ttf_font_data(font_date_bytes).unwrap();
 

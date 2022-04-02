@@ -41,6 +41,7 @@ pub struct SanitizedConf {
     pub font: Font,
     pub font_size: u8,
     pub font_color: String,
+    pub custom_font_location: String,
 
     pub deadline_str: String,
 }
@@ -69,6 +70,7 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         show_weeks: conf.show_weeks,
         show_days: conf.show_days,
         show_hours: conf.show_hours,
+        custom_font_location: conf.custom_font_location.clone(),
 
         // Just a placeholder till we convert RGB to HEX
         font_color: String::new(),

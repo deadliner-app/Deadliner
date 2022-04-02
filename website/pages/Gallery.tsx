@@ -9,11 +9,12 @@ import "swiper/css/navigation";
 import "swiper/css/scrollbar";
 
 let galleryImages: string[] = [
-  "screenshot2.png",
   "screenshot1.png",
+  "screenshot2.png",
   "screenshot3.png",
   "screenshot4.png",
   "screenshot5.png",
+  "screenshot6.png",
 ];
 
 const Gallery = () => {
