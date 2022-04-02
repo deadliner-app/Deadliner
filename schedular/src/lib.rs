@@ -7,7 +7,6 @@ mod system_tray;
 use std::{
     env, fs,
     sync::{Arc, Mutex},
-    time::Instant,
 };
 
 use chrono::{Local, NaiveDateTime};
@@ -51,26 +50,36 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
     let mut sched = JobScheduler::new();
 
     if conf.show_hours {
-        // Run every minute 0 (aka: every begining of a local hour)
+        let minutes_till_next_hour = get_minutes_left(&conf) % 60 + 1;
+        let minutes_till_next_hour = if minutes_till_next_hour == 60 {
+            minutes_till_next_hour - 1
+        } else {
+            minutes_till_next_hour
+        };
+
+        // Run every minute 0, second 0 (aka: every begining of a local hour)
         sched
-            .add(instantiate_job("* 0 * * * * *", conf.clone()))
+            .add(instantiate_job(
+                &format!("0 {} * * * * *", minutes_till_next_hour),
+                conf.clone(),
+            ))
             .unwrap();
     } else if conf.show_days {
         // Run every midnight
         sched
-            .add(instantiate_job("* 0 0 * * * * *", conf.clone()))
+            .add(instantiate_job("0 0 0 * * * * *", conf.clone()))
             .unwrap();
     } else if conf.show_weeks {
         // Run every week
         // First day in the week = Sunday.
         // TODO: ask for the weekend of a user.
         sched
-            .add(instantiate_job("* 0 0 * * 7 *", conf.clone()))
+            .add(instantiate_job("0 0 0 * * 7 *", conf.clone()))
             .unwrap();
     } else if conf.show_months {
         // Run every month
         sched
-            .add(instantiate_job("* 0 0 1 * * *", conf.clone()))
+            .add(instantiate_job("0 0 0 1 * * *", conf.clone()))
             .unwrap();
     }
 
@@ -101,7 +110,6 @@ pub fn start_schedular(exit: Arc<Mutex<bool>>) {
 
 fn instantiate_job<'a>(cron: &str, conf: SanitizedConf) -> Job {
     let job = Job::new(cron, move |_uuid, _l| {
-        // Setup minutes schedular if deadline is under 60 minutes
         update_wallpaper(&conf, false).unwrap();
     })
     .unwrap();

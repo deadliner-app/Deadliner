@@ -6,7 +6,7 @@ const Hero = () => {
   return (
     <div id="hero" className="flex justify-center items-center grow">
       <Section className="flex-col items-center">
-        <h1 className="mb-20 text-white text-huge font-semibold text-center leading-[7.5rem] h-max">
+        <h1 className="mb-20 text-white lg:text-7xl xl:text-huge font-semibold text-center leading-[7.5rem] h-max">
           Say 👋 to procrastination
           <br />
           when you’re on a
