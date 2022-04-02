@@ -45,12 +45,7 @@ export const Nav = () => {
 
   const MobileNavLinks = () => {
     return (
-      <div
-        onClick={OpenDrawerHandler}
-        className={`py-48 flex flex-col lg:hidden w-screen h-screen absolute left-0 top-0 transition duration-200 bg-[#FABE2C] drawer ${
-          openDrawer ? "drawer-open" : ""
-        }`}
-      >
+      <>
         <ul className="grow list-none flex justify-around flex-col">
           <li className="mb-8 ml-10 lg:mb-0 ">
             <Link href="/#features" text="Features" />
@@ -70,7 +65,7 @@ export const Nav = () => {
             <Image src="/images/github.png" alt="" width={32} height={32} />
           </div>
         </a>
-      </div>
+      </>
     );
   };
 
@@ -118,7 +113,14 @@ export const Nav = () => {
           )}
         </div>
 
-        {true && <MobileNavLinks />}
+        <div
+          onClick={OpenDrawerHandler}
+          className={`py-48 flex flex-col lg:hidden w-screen h-screen fixed left-0 top-0 transition duration-200 bg-[#FABE2C] ${
+            openDrawer ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <MobileNavLinks />
+        </div>
 
         <div className="hidden lg:flex">
           <DesktopNavLinks />

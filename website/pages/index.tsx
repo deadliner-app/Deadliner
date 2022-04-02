@@ -39,7 +39,7 @@ const Home: NextPage = () => {
         <title>Deadliner</title>
       </Head>
 
-      <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl w-full overflow-hidden">
+      <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl">
         <div className="flex flex-col h-screen">
           <Nav />
           <Hero />
