@@ -7,6 +7,7 @@ import Image from "next/image";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/scrollbar";
+import Title from "../components/Title";
 
 let galleryImages: string[] = [
   "screenshot1.png",
@@ -20,6 +21,9 @@ let galleryImages: string[] = [
 const Gallery = () => {
   return (
     <Section id="gallery">
+      <div className="lg:hidden">
+        <Title text="Gallery" />
+      </div>
       <Swiper
         spaceBetween={10}
         slidesPerView={1}
