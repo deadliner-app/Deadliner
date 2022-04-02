@@ -6,14 +6,14 @@ const Hero = () => {
   return (
     <div id="hero" className="flex justify-center items-center grow">
       <Section className="flex-col items-center">
-        <h1 className="mb-20 text-white lg:text-7xl xl:text-huge font-semibold text-center leading-[7.5rem] h-max">
+        <h1 className="mb-20 text-white text-[34px] md:text-[50px] lg:text-[65px] lg:leading-[5.5rem] xl:text-[80px] xl:leading-[7.5rem] 2xl:text-huge font-semibold text-center h-max">
           Say 👋 to procrastination
           <br />
           when you’re on a
           <br />
           Deadline.
         </h1>
-        <div className="w-14 h-14 flex justify-center items-center">
+        <div className="2xl:w-14 2xl:h-14 xl:w-10 xl:h-10 w-8 h-8 flex justify-center items-center">
           <Image
             className="animate-pulse"
             src="/scroll.svg"

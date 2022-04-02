@@ -7,13 +7,25 @@ html {
 }
 
 img {
-    display: block;
+  display: block;
 }
 
-.swiper-button-next,.swiper-button-prev {
-    color: #FED843 !important;
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fed843 !important;
 }
 
 .swiper-scrollbar-drag {
-    background: #FED843 !important;
+  background: #fed843 !important;
+}
+
+.swiper {
+  width: 100%;
+}
+
+@media screen and (max-width: 1024px) {
+  .swiper-button-next::after,
+  .swiper-button-prev::after {
+    font-size: 25px !important;
+  }
 }

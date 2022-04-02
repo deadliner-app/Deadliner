@@ -5,8 +5,18 @@ module.exports = {
   ],
   theme: {
     extend: {
+      width: {
+        app_screenshot: 465,
+        icon: 45,
+        85: "350px",
+      },
+      height: {
+        app_screenshot: 766,
+        icon: 45,
+        85: "350px",
+      },
       screens: {
-        lg: "1313px",
+        xl: "1313px",
       },
       fontFamily: {
         Poppins: ["Poppins", "sans-serif"],

@@ -31,7 +31,7 @@ const Home: NextPage = () => {
           content="https://raw.githubusercontent.com/YassinEldeeb/Deadliner/main/.github/images/twitter-card.png"
         />
         <meta property="og:url" content="https://deadliner.vercel.app" />
-        <meta property="og:title" content="A Twitter for My Sister" />
+        <meta property="og:title" content="Deadliner" />
         <meta
           property="og:description"
           content="Gently manage your deadline."
@@ -39,12 +39,12 @@ const Home: NextPage = () => {
         <title>Deadliner</title>
       </Head>
 
-      <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl">
+      <div className="bg-fixed bg-gradient-to-tr from-radial-tr to-radial-bl w-full overflow-hidden">
         <div className="flex flex-col h-screen">
           <Nav />
           <Hero />
         </div>
-        <Separator />
+        <div className="w-full h-0 lg:h-7" />
         <Features />
         <Separator />
         <Gallery />

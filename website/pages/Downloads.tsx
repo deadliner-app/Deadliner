@@ -1,11 +1,10 @@
 import Image from "next/image";
-import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import Section from "../components/Section";
+import Title from "../components/Title";
 
 const Downloads = () => {
   let [link, setLink] = useState(null);
-  let router = useRouter();
 
   useEffect(() => {
     fetch("https://api.github.com/repos/YassinEldeeb/deadliner/releases/latest")
@@ -16,20 +15,27 @@ const Downloads = () => {
   }, []);
 
   return (
-    <Section id="downloads" className="justify-start flex-col">
-      <h1 className="font-semibold text-8xl text-white mb-14">Downloads</h1>
+    <Section id="downloads" className="justify-start">
+      <Title text="Downloads" />
 
       {link ? (
         <a href={link}>
-          <div className="flex cursor-pointer decoration-white" title={link}>
-            <Image src="/images/link.png" width={41} height={41} alt="" />
-            <h2 className="ml-4 text-white font-medium text-3xl hover:underline">
+          <div
+            className="flex items-center cursor-pointer decoration-white"
+            title={link}
+          >
+            <div className="shrink-0 w-6 h-6 lg:w-10 lg:h-10">
+              <Image src="/images/link.png" width={40} height={40} alt="" />
+            </div>
+            <h2 className="ml-4 text-white font-medium text-md lg:text-3xl underline lg:hover:underline">
               Follow the latest github release for your Operating System.
             </h2>
           </div>
         </a>
       ) : (
-        <p className="text-white text-2xl">Fetching latest github release...</p>
+        <p className="text-white text-md lg:text-2xl">
+          Fetching latest github release...
+        </p>
       )}
     </Section>
   );

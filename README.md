@@ -21,11 +21,11 @@ Deadliner is a cross-platform desktop application for setting deadline for a pro
 
 # Why?
 
-So, I was researching on “what makes someone productive?” for the 731th time! And surprisingly I found it in a [video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) from [Jonas Tyroller](https://www.youtube.com/c/JonasTyroller) - Indie game dev.
+So, I was researching on “what makes someone productive?” for the 731th time! And surprisingly I found it in a [video](https://www.youtube.com/watch?v=PzdGhVzQmJ8) from [Jonas Tyroller](https://www.youtube.com/c/JonasTyroller) - Indie game developer.
 
-I like to take inspiration from game devs cause in my opinion they're the most  motivated/inspiring developers 😊.
+I like to take inspiration from game developers cause in my opinion they're the most  motivated/inspiring developers 😊.
 
-This video was about asking successful game devs on how they think about productivity and the results were ***fascinating***, they all agreed on ***`Deadlines`*** as the most effective solution for procrastination.
+This video was about asking successful game developers on how they think about productivity and the results were ***fascinating***, they all agreed on ***`Deadlines`*** as the most effective solution for procrastination.
 
 I’ve always avoided deadlines in my side projects as they’re usually for learning purposes cause 
 I thought setting deadlines will make me rush through the project and skip learning important details.
