@@ -1,5 +1,4 @@
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
 
 // System tray is supported and availabled only if `tray` feature is enabled.
 // Platform: Windows, Linux and macOS.
@@ -9,10 +8,7 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
     use deadliner_gui::{get_current_file_ext, new_path};
     #[cfg(target_os = "linux")]
     use std::path::Path;
-    use std::{
-        process::{Child, Command},
-        thread::JoinHandle,
-    };
+    use std::process::{Child, Command};
     #[cfg(target_os = "macos")]
     use tao::platform::macos::{CustomMenuItemExtMacOS, NativeImage, SystemTrayBuilderExtMacOS};
     use tao::{
@@ -60,6 +56,7 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
         let exit_lock = exit.try_lock();
         if let Ok(value) = exit_lock {
             if *value == true {
+                println!("Exiting...");
                 *control_flow = ControlFlow::Exit;
             }
         }
