@@ -169,7 +169,7 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     }
 
     // !Here we setup a schedule to update the wallpaper
-    let schedular_exec = format!("deadliner-schedular.{}", &get_current_file_ext());
+    let schedular_exec = format!("deadliner-schedular{}", &get_current_file_ext());
     unwrap_or_return!(
         Command::new(new_path(&schedular_exec))
             .arg("skip-update-on-launch")
@@ -236,6 +236,6 @@ pub fn get_current_file_ext() -> String {
     if splitted_by_dots.len() < 2 {
         String::new()
     } else {
-        splitted_by_dots[splitted_by_dots.len() - 1].to_string()
+        ".".to_string() + splitted_by_dots[splitted_by_dots.len() - 1]
     }
 }
