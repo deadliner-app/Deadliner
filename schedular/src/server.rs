@@ -47,8 +47,7 @@ fn handle_connection(mut stream: TcpStream, exit: Arc<Mutex<bool>>) -> bool {
         .expect("Couldn't write all bytes to the stream!");
 
     if req.is_some() && req.unwrap().uri == "/shutdown" {
-        let mut exit = exit.lock().unwrap();
-        *exit = true;
+        *exit.lock().unwrap() = true;
 
         return true;
     }

@@ -53,8 +53,7 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
         *control_flow = ControlFlow::Wait;
 
         // Acquire the lock to check if an exit signal is sent.
-        let exit_lock = exit.try_lock();
-        if let Ok(value) = exit_lock {
+        if let Ok(value) = exit.try_lock() {
             if *value == true {
                 *control_flow = ControlFlow::Exit;
             }
