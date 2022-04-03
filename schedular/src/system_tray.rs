@@ -39,7 +39,7 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
     let icon = include_bytes!("../icons/icon.png").to_vec();
     // Linux require Pathbuf to PNG file
     #[cfg(target_os = "linux")]
-    let icon = Path::new(env!("CARGO_MANIFEST_DIR")).join("icons/icon.png");
+    let icon = new_path("icons/icon.png");
 
     // Menu is shown with left click on macOS and right click on Windows.
     #[cfg(target_os = "macos")]
