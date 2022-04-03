@@ -56,7 +56,6 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
         let exit_lock = exit.try_lock();
         if let Ok(value) = exit_lock {
             if *value == true {
-                println!("Exiting...");
                 *control_flow = ControlFlow::Exit;
             }
         }

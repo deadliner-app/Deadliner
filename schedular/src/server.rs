@@ -92,7 +92,7 @@ impl<'a> Request<'a> {
     pub fn parse(&self) -> Option<ParsedRequest> {
         let req_str = String::from_utf8_lossy(self.buffer);
 
-        let mut body = String::from("");
+        let body = String::from("");
 
         let mut lines: Vec<&str> = req_str.lines().collect();
 
