@@ -170,7 +170,6 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
 
     // !Here we setup a schedule to update the wallpaper
     let schedular_exec = format!("deadliner-schedular{}", &get_current_file_ext());
-    println!("{:?}", new_path(&schedular_exec).to_str().unwrap());
     unwrap_or_return!(
         Command::new(new_path(&schedular_exec))
             .arg("skip-update-on-launch")

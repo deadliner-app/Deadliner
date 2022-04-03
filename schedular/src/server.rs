@@ -9,7 +9,11 @@ use std::{
 };
 
 pub fn run_server(exit: Arc<Mutex<bool>>) {
-    let port = fs::read_to_string(new_path("port.txt")).unwrap();
+    let port: u16 = fs::read_to_string(new_path("port.txt"))
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
     let addr = format!("127.0.0.1:{}", port);
 
     let listener = TcpListener::bind(&addr).unwrap();

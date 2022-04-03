@@ -83,8 +83,6 @@ pub fn bg_system_tray(exit: Arc<Mutex<bool>>) {
             } else {
                 let gui_exec = format!("deadliner{}", &get_current_file_ext());
 
-                println!("{:?}", new_path(&gui_exec).to_str().unwrap());
-
                 let child_process = Command::new(new_path(&gui_exec)).spawn().unwrap();
 
                 *gui_handler = Some(child_process);
