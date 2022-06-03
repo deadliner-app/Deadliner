@@ -30,12 +30,7 @@ use wallpaper::Mode;
 pub struct DeadlinerConf {
     pub screen_dimensions: ScreenDimensions,
 
-    pub background: BackgroundOptions,
-    pub wallpaper_mode: WallpaperMode,
-
-    pub bg_color: [u8; 3],
-    pub bg_url: String,
-    pub bg_location: String,
+    pub default_background: Background,
 
     pub show_months: bool,
     pub show_weeks: bool,
@@ -64,7 +59,6 @@ pub struct Deadliner<'a> {
     textures: HashMap<&'a str, TextureHandle>,
 
     error_msg: String,
-    invalid_bg: bool,
     invalid_font: bool,
 
     conf: DeadlinerConf,
@@ -75,11 +69,41 @@ pub enum Periods {
     AM,
     PM,
 }
-#[derive(Debug, PartialEq, Copy, Clone, EnumIter, Serialize, Deserialize)]
-pub enum BackgroundOptions {
-    Solid,
-    FromDisk,
-    FromURL,
+
+#[derive(Debug, PartialEq, Clone, EnumIter, Serialize, Deserialize)]
+pub enum Background {
+    Solid([u8; 3]),
+    FromDisk {
+        location: String,
+        mode: WallpaperMode,
+    },
+    FromURL {
+        url: String,
+        mode: WallpaperMode,
+    },
+}
+
+impl Background {
+    pub fn mode(&self) -> WallpaperMode {
+        match self {
+            Background::FromURL { mode, .. } | Background::FromDisk { mode, .. } => *mode,
+            Background::Solid(_) => WallpaperMode::Center,
+        }
+    }
+}
+
+impl std::fmt::Display for Background {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Solid(_) => "Solid",
+                Self::FromDisk { .. } => "From Disk",
+                Self::FromURL { .. } => "From URL",
+            }
+        )
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy, EnumIter, Serialize, Deserialize)]
@@ -97,6 +121,12 @@ pub enum WallpaperMode {
     Crop,
     Fit,
     Span,
+}
+
+impl Default for WallpaperMode {
+    fn default() -> Self {
+        WallpaperMode::Center
+    }
 }
 
 impl From<WallpaperMode> for Mode {
@@ -142,6 +172,13 @@ impl<'a> App for Deadliner<'a> {
                 width: 1.,
             },
         };
+
+        // Make small text slightly bigger
+        style
+            .text_styles
+            .get_mut(&egui::TextStyle::Small)
+            .unwrap()
+            .size = 14.0;
 
         style.visuals.widgets.inactive = base;
         style.visuals.widgets.active = base;
@@ -201,96 +238,9 @@ impl<'a> App for Deadliner<'a> {
             draw_line(ui, 2.);
 
             render_section(ui, "Styling", |ui| {
-                ui.horizontal(|ui| {
-                    ui.label("Background:");
-
-                    ComboBox::from_id_source("background_options")
-                        .selected_text(format!("{:?}", self.conf.background))
-                        .show_ui(ui, |ui| {
-                            for option in BackgroundOptions::iter().collect::<Vec<_>>() {
-                                ui.selectable_value(
-                                    &mut self.conf.background,
-                                    option,
-                                    format!("{:?}", option),
-                                );
-                            }
-                        });
-                });
+                background_edit(ui, &mut self.conf.default_background);
 
                 ui.add_space(PADDING);
-
-                match self.conf.background {
-                    BackgroundOptions::Solid => {
-                        ui.horizontal(|ui| {
-                            ui.label("Pick a Color:");
-                            ui.color_edit_button_srgb(&mut self.conf.bg_color);
-                        });
-                    }
-                    BackgroundOptions::FromURL => {
-                        ui.horizontal(|ui| {
-                            ui.label("Image URL:");
-                            ui.add(
-                                egui::TextEdit::singleline(&mut self.conf.bg_url)
-                                    .desired_width(180.)
-                                    .hint_text(
-                                        RichText::new("https://source.unsplash.com/random")
-                                            .color(Color32::from_white_alpha(45)),
-                                    ),
-                            );
-                        });
-                    }
-                    BackgroundOptions::FromDisk => {
-                        ui.horizontal(|ui| {
-                            if ui.button("Open file…").clicked() {
-                                if let Some(path) = rfd::FileDialog::new().pick_file() {
-                                    let location = path.display().to_string();
-                                    let file_name = get_file_name_from_path(&location);
-                                    let supported_file_ext = ["png", "gif", "jpg", "jpeg"];
-                                    let file_ext =
-                                        file_name.split(".").collect::<Vec<&str>>().pop().unwrap();
-
-                                    if supported_file_ext.contains(&file_ext) {
-                                        self.invalid_bg = false;
-                                        self.conf.bg_location = location;
-                                    } else {
-                                        self.invalid_bg = true;
-                                    }
-                                }
-                            }
-
-                            if self.invalid_bg {
-                                ui.colored_label(Color32::from_rgb(255, 48, 48), "Not an Image");
-                            } else if !self.conf.bg_location.is_empty() {
-                                ui.colored_label(
-                                    Color32::from_rgba_unmultiplied(254, 216, 67, 200),
-                                    get_file_name_from_path(&self.conf.bg_location),
-                                );
-                            }
-                        });
-                    }
-                }
-
-                if self.conf.background == BackgroundOptions::FromDisk
-                    || self.conf.background == BackgroundOptions::FromURL
-                {
-                    ui.add_space(PADDING);
-
-                    ui.horizontal(|ui| {
-                        ui.label("Wallpaper Mode:");
-
-                        ComboBox::from_id_source("background_mode")
-                            .selected_text(format!("{:?}", self.conf.wallpaper_mode))
-                            .show_ui(ui, |ui| {
-                                for option in WallpaperMode::iter().collect::<Vec<_>>() {
-                                    ui.selectable_value(
-                                        &mut self.conf.wallpaper_mode,
-                                        option,
-                                        format!("{:?}", option),
-                                    );
-                                }
-                            });
-                    });
-                }
 
                 ui.add_space(PADDING);
 
@@ -446,23 +396,104 @@ impl<'a> App for Deadliner<'a> {
     }
 }
 
+fn background_edit(ui: &mut egui::Ui, bg: &mut Background) {
+    ui.horizontal(|ui| {
+        ui.label("Background:");
+
+        ComboBox::from_id_source("background_options")
+            .selected_text(bg.to_string())
+            .show_ui(ui, |ui| {
+                for option in Background::iter().collect::<Vec<_>>() {
+                    let label = option.to_string();
+                    ui.selectable_value(bg, option, label);
+                }
+            });
+    });
+
+    ui.add_space(PADDING);
+
+    match bg {
+        Background::Solid(color) => {
+            ui.horizontal(|ui| {
+                ui.label("Pick a Color:");
+                ui.color_edit_button_srgb(color);
+            });
+        }
+        Background::FromURL { url, .. } => {
+            ui.horizontal(|ui| {
+                ui.label("Image URL:");
+                ui.add(
+                    egui::TextEdit::singleline(url)
+                        .desired_width(180.)
+                        .hint_text(
+                            RichText::new("https://source.unsplash.com/random")
+                                .color(Color32::from_white_alpha(45)),
+                        ),
+                );
+            });
+        }
+        Background::FromDisk { location, .. } => {
+            ui.horizontal(|ui| {
+                let mut is_valid = true;
+                if ui.button("Open file…").clicked() {
+                    if let Some(path) = rfd::FileDialog::new().pick_file() {
+                        let new_location = path.display().to_string();
+
+                        let file_name = get_file_name_from_path(&new_location);
+                        let file_ext = file_name.split(".").collect::<Vec<&str>>().pop().unwrap();
+                        let supported_file_ext = ["png", "gif", "jpg", "jpeg"];
+
+                        if supported_file_ext.contains(&file_ext) {
+                            *location = new_location;
+                            is_valid = true;
+                        } else {
+                            is_valid = false;
+                        }
+                    }
+                }
+
+                if !is_valid {
+                    ui.colored_label(Color32::from_rgb(255, 48, 48), "Not an Image");
+                } else if !location.is_empty() {
+                    ui.colored_label(
+                        Color32::from_rgba_unmultiplied(254, 216, 67, 200),
+                        get_file_name_from_path(location),
+                    );
+                }
+            });
+        }
+    }
+
+    if let Background::FromDisk { mode, .. } | Background::FromURL { mode, .. } = bg {
+        ui.add_space(PADDING);
+
+        ui.horizontal(|ui| {
+            ui.label("Wallpaper Mode:");
+
+            ComboBox::from_id_source("background_mode")
+                .selected_text(format!("{:?}", mode))
+                .show_ui(ui, |ui| {
+                    for option in WallpaperMode::iter().collect::<Vec<_>>() {
+                        ui.selectable_value(mode, option, format!("{:?}", option));
+                    }
+                });
+        });
+    }
+}
+
 impl<'a> Deadliner<'a> {
     pub fn new(screen_width: u32, screen_height: u32) -> Deadliner<'a> {
         let default = Deadliner {
             textures: HashMap::new(),
             error_msg: String::new(),
-            invalid_bg: false,
             invalid_font: false,
             conf: DeadlinerConf {
                 screen_dimensions: ScreenDimensions {
                     width: screen_width,
                     height: screen_height,
                 },
-                background: BackgroundOptions::Solid,
-                bg_color: [0, 0, 0],
-                bg_location: String::new(),
+                default_background: Background::Solid([0; 3]),
                 custom_font_location: String::new(),
-                bg_url: String::new(),
                 font: Font::PoppinsBlack,
                 date: String::new(),
                 hours: String::new(),
@@ -470,7 +501,6 @@ impl<'a> Deadliner<'a> {
                 period: Periods::AM,
                 font_size: 100,
                 font_color: [255, 255, 255],
-                wallpaper_mode: WallpaperMode::Center,
                 show_hours: true,
                 show_days: true,
                 show_weeks: false,
