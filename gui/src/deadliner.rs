@@ -434,7 +434,9 @@ fn background_edit(ui: &mut egui::Ui, bg: &mut Background) {
         }
         Background::FromDisk { location, .. } => {
             ui.horizontal(|ui| {
-                let mut is_valid = true;
+                #[derive(Clone)]
+                struct IsValid(bool);
+
                 if ui.button("Open file…").clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_file() {
                         let new_location = path.display().to_string();
@@ -443,15 +445,20 @@ fn background_edit(ui: &mut egui::Ui, bg: &mut Background) {
                         let file_ext = file_name.split(".").collect::<Vec<&str>>().pop().unwrap();
                         let supported_file_ext = ["png", "gif", "jpg", "jpeg"];
 
+                        let mut data = ui.data();
+                        let is_valid = data.get_temp_mut_or(ui.id(), IsValid(true));
+                        
                         if supported_file_ext.contains(&file_ext) {
                             *location = new_location;
-                            is_valid = true;
+
+                            *is_valid = IsValid(true);
                         } else {
-                            is_valid = false;
+                            *is_valid = IsValid(false);
                         }
                     }
                 }
 
+                let is_valid = ui.data().get_temp_mut_or(ui.id(), IsValid(true)).0;
                 if !is_valid {
                     ui.colored_label(Color32::from_rgb(255, 48, 48), "Not an Image");
                 } else if !location.is_empty() {
