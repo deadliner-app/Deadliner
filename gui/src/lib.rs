@@ -25,12 +25,7 @@ use std::{fs::File, path};
 pub struct SanitizedConf {
     pub screen_dimensions: ScreenDimensions,
 
-    pub bg_type: BackgroundOptions,
-    pub bg_color: Option<String>,
-    pub bg_color_arr: [u8; 3],
-    pub bg_url: Option<String>,
-    pub bg_location: Option<String>,
-
+    pub default_bg: SanitizedBackground,
     pub bg_mode: WallpaperMode,
 
     pub show_months: bool,
@@ -46,6 +41,30 @@ pub struct SanitizedConf {
     pub deadline_str: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum SanitizedBackground {
+    Solid { rgb: [u8; 3], hex: String },
+    FromDisk(String),
+    FromURL(String),
+}
+
+impl From<Background> for SanitizedBackground {
+    fn from(b: Background) -> Self {
+        match b {
+            Background::Solid([r, g, b]) => Self::Solid {
+                rgb: [r, g, b],
+                hex: rgb_to_hex(r, g, b),
+            },
+            Background::FromDisk { location, .. } => Self::FromDisk(location.trim().to_string()),
+            Background::FromURL { url, .. } => Self::FromURL(url.trim().to_string()),
+        }
+    }
+}
+
+fn rgb_to_hex(r: u8, g: u8, b: u8) -> String {
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
+}
+
 fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
     if !(conf.show_months || conf.show_weeks || conf.show_days || conf.show_hours)
         || conf.date.is_empty()
@@ -57,14 +76,10 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
 
     let mut sanitized_conf = SanitizedConf {
         screen_dimensions: conf.screen_dimensions.clone(),
-        bg_mode: conf.wallpaper_mode,
-        bg_color: None,
-        bg_color_arr: conf.bg_color,
-        bg_url: None,
-        bg_location: None,
+        default_bg: conf.default_background.clone().into(),
+        bg_mode: conf.default_background.mode(),
         font: conf.font,
         font_size: conf.font_size,
-        bg_type: conf.background,
 
         show_months: conf.show_months,
         show_weeks: conf.show_weeks,
@@ -79,23 +94,11 @@ fn save_inputs(conf: &DeadlinerConf) -> Result<(), String> {
         deadline_str: String::new(),
     };
 
-    let rgb_to_hex = |r, g, b| format!("#{:02X}{:02X}{:02X}", r, g, b);
-    let [r, g, b] = conf.bg_color;
-
     // font-color RGB to HEX
     {
         let [r, g, b] = conf.font_color;
 
         sanitized_conf.font_color = rgb_to_hex(r, g, b);
-    }
-
-    // bg-color RGB to HEX
-    match conf.background {
-        BackgroundOptions::Solid => sanitized_conf.bg_color = Some(rgb_to_hex(r, g, b)),
-        BackgroundOptions::FromDisk => {
-            sanitized_conf.bg_location = Some(conf.bg_location.trim().to_string())
-        }
-        BackgroundOptions::FromURL => sanitized_conf.bg_url = Some(conf.bg_url.trim().to_string()),
     }
 
     let formatted_date_str = format!(
@@ -189,11 +192,11 @@ pub fn is_string_numeric(word: &str) -> bool {
     return true;
 }
 
-pub fn get_file_name_from_path(file_path: &str) -> &str {
+pub fn get_file_name_from_path(file_path: &str) -> String {
     let location_paths: Vec<&str> = file_path.split(path::MAIN_SEPARATOR).collect();
     let file_name = location_paths[location_paths.len() - 1];
 
-    file_name
+    file_name.to_string()
 }
 
 type DownloadResult<T> = std::result::Result<T, Box<dyn Error>>;

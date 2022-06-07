@@ -1,7 +1,7 @@
 use std::fs;
 
 use crate::{
-    download_image, get_cache_dir, new_path, unwrap_or_return, BackgroundOptions, Font,
+    download_image, get_cache_dir, new_path, unwrap_or_return, Font, SanitizedBackground,
     SanitizedConf, ScreenDimensions,
 };
 use chrono::{Local, NaiveDateTime};
@@ -125,36 +125,36 @@ pub fn generate_wallpaper(deadline_str: &str, conf: &SanitizedConf) -> Result<St
 
     let mut background;
 
-    if conf.bg_type == BackgroundOptions::FromDisk {
-        background = image::open(conf.bg_location.as_ref().unwrap()).unwrap();
-    } else if conf.bg_type == BackgroundOptions::Solid {
-        let ScreenDimensions { width, height } = conf.screen_dimensions;
+    match &conf.default_bg {
+        SanitizedBackground::FromDisk(path) => {
+            background = image::open(path).unwrap();
+        }
+        SanitizedBackground::Solid { rgb, .. } => {
+            let ScreenDimensions { width, height } = conf.screen_dimensions;
 
-        let mut image = RgbImage::new(width, height);
+            let mut image = RgbImage::new(width, height);
 
-        draw_filled_rect_mut(
-            &mut image,
-            Rect::at(0, 0).of_size(width, height),
-            Rgb(conf.bg_color_arr),
-        );
+            draw_filled_rect_mut(&mut image, Rect::at(0, 0).of_size(width, height), Rgb(*rgb));
 
-        background = DynamicImage::ImageRgb8(image);
-    } else {
-        let downloaded_image = match download_image(conf.bg_url.as_ref().unwrap()) {
-            Ok(img) => img,
-            Err(_) => {
-                return Err(String::from(
-                    "Couldn't download the Image from the supplied URL!",
-                ))
-            }
-        };
+            background = DynamicImage::ImageRgb8(image);
+        }
+        SanitizedBackground::FromURL(url) => {
+            let downloaded_image = match download_image(url) {
+                Ok(img) => img,
+                Err(_) => {
+                    return Err(String::from(
+                        "Couldn't download the Image from the supplied URL!",
+                    ))
+                }
+            };
 
-        background = image::io::Reader::open(downloaded_image)
-            .unwrap()
-            .with_guessed_format()
-            .unwrap()
-            .decode()
-            .unwrap();
+            background = image::io::Reader::open(downloaded_image)
+                .unwrap()
+                .with_guessed_format()
+                .unwrap()
+                .decode()
+                .unwrap();
+        }
     }
 
     if background.width() <= text_png.size.width || background.height() <= text_png.size.height {
@@ -194,36 +194,36 @@ pub fn generate_deadline_over_wallpaper(
 
     let mut background;
 
-    if conf.bg_type == BackgroundOptions::FromDisk {
-        background = image::open(conf.bg_location.as_ref().unwrap()).unwrap();
-    } else if conf.bg_type == BackgroundOptions::Solid {
-        let ScreenDimensions { width, height } = conf.screen_dimensions;
+    match &conf.default_bg {
+        SanitizedBackground::FromDisk(path) => {
+            background = image::open(path).unwrap();
+        }
+        SanitizedBackground::Solid { rgb, .. } => {
+            let ScreenDimensions { width, height } = conf.screen_dimensions;
 
-        let mut image = RgbImage::new(width, height);
+            let mut image = RgbImage::new(width, height);
 
-        draw_filled_rect_mut(
-            &mut image,
-            Rect::at(0, 0).of_size(width, height),
-            Rgb(conf.bg_color_arr),
-        );
+            draw_filled_rect_mut(&mut image, Rect::at(0, 0).of_size(width, height), Rgb(*rgb));
 
-        background = DynamicImage::ImageRgb8(image);
-    } else {
-        let downloaded_image = match download_image(conf.bg_url.as_ref().unwrap()) {
-            Ok(img) => img,
-            Err(_) => {
-                return Err(String::from(
-                    "Couldn't download the Image from the supplied URL!",
-                ))
-            }
-        };
+            background = DynamicImage::ImageRgb8(image);
+        }
+        SanitizedBackground::FromURL(url) => {
+            let downloaded_image = match download_image(url) {
+                Ok(img) => img,
+                Err(_) => {
+                    return Err(String::from(
+                        "Couldn't download the Image from the supplied URL!",
+                    ))
+                }
+            };
 
-        background = image::io::Reader::open(downloaded_image)
-            .unwrap()
-            .with_guessed_format()
-            .unwrap()
-            .decode()
-            .unwrap();
+            background = image::io::Reader::open(downloaded_image)
+                .unwrap()
+                .with_guessed_format()
+                .unwrap()
+                .decode()
+                .unwrap();
+        }
     }
 
     if background.width() <= text_png.size.width || background.height() <= text_png.size.height {
