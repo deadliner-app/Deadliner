@@ -192,11 +192,11 @@ pub fn is_string_numeric(word: &str) -> bool {
     return true;
 }
 
-pub fn get_file_name_from_path(file_path: &str) -> String {
+pub fn get_file_name_from_path(file_path: &str) -> &str {
     let location_paths: Vec<&str> = file_path.split(path::MAIN_SEPARATOR).collect();
     let file_name = location_paths[location_paths.len() - 1];
 
-    file_name.to_string()
+    file_name
 }
 
 type DownloadResult<T> = std::result::Result<T, Box<dyn Error>>;
